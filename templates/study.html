@@ -14,7 +14,20 @@
       </header>
 
       <section class="player-card" aria-live="polite">
-        <div id="player"></div>
+        <video
+          id="player"
+          preload="auto"
+          playsinline
+          disablepictureinpicture
+          controlslist="nodownload noplaybackrate nofullscreen"
+        ></video>
+        <div id="start-overlay" class="overlay">
+          <div class="question-card">
+            <p class="eyebrow">Ready</p>
+            <h2>Press start when you are ready to begin.</h2>
+            <button id="start-button" type="button" disabled>Loading video…</button>
+          </div>
+        </div>
         <div id="question-overlay" class="overlay" hidden>
           <div class="question-card">
             <p class="eyebrow">Pause point</p>
@@ -31,6 +44,10 @@
             <button id="next-button" type="button">Next video</button>
           </div>
         </div>
+        <div id="free-swipe-controls" class="free-swipe-controls" hidden>
+          <p>Move to the next video whenever you want.</p>
+          <button id="swipe-button" type="button">Next video</button>
+        </div>
       </section>
 
       <section id="complete-card" class="complete-card" hidden>
@@ -40,7 +57,6 @@
       </section>
       <p id="status" class="status" role="status"></p>
     </main>
-    <script src="https://www.youtube.com/iframe_api"></script>
     <script src="{{ url_for('static', filename='study.js') }}"></script>
   </body>
 </html>
