@@ -114,19 +114,24 @@ w is the fraction watched (capped at 1), w̄ the viewer's average in this block
 
 | # | Where they swiped | g |
 | --- | --- | --- |
-| 1 | The video played to its end at least once | +0.2 |
-| 2 | During the hook | −0.4 |
-| 3 | After the primary payoff started (`payoff_grace_s`, default 0) | +0.2 |
-| 4 | Within 1 s after a loop's micro-payoff (`micro_payoff_window_s`) | +0.1 |
-| 5 | Inside an annotated buildup / setup / development span | −0.1 / −0.3 / −0.2 |
-| 6 | In the middle of a loop | −0.2 |
+| 1 | The video played to its end at least once | +0.3 |
+| 2 | During the hook | −0.3 |
+| 3 | After the primary payoff started (`payoff_grace_s`, default 0) | +0.3 |
+| 4 | Within 1 s after a loop's micro-payoff (`micro_payoff_window_s`) | +0.1 after loop 1, rising evenly to +0.3 after the last loop |
+| 5 | Inside an annotated buildup / setup / development span | 0.0 / −0.2 / −0.1 |
+| 6 | In the middle of a loop | −0.1 in loop 1, rising evenly to +0.1 in the last loop |
 | 7 | In a gap of at most 2 s after a stage: as that stage | |
-| 8 | Nothing annotated at that time | −0.2 |
+| 8 | Nothing annotated at that time | −0.1 |
+
+The values are centred so an ordinary video scores about 0: the first table was
+0.10 lower everywhere, which made the average e −0.10 and left only 35% of
+videos positive (now ~50%). Loop rewards grow with each loop, so leaving after
+having seen micro-payoffs is not treated as a rejection.
 
 Annotated stages come before loops because Pause Times often starts loop 1 at
 0:00, over the hook and setup. All values are in `rq3/config.py`. Likes are not
-part of e; the feed engine applies them. `classify_swipe` returns which rule
-matched, which the analysis reuses as the swipe stage.
+part of e; the feed engine applies them. `judge_swipe` returns the rule matched,
+its g and the loop involved; the rule doubles as the swipe stage in the analysis.
 
 ## The feed engine
 
@@ -181,6 +186,19 @@ First run, with the 44 clips and a shared starting p (blocks of 12, step 0.3, bo
 | 3. Under 5% of switches forced by an empty topic | 39%, fail | 4.7%, pass |
 
 All three checks pass once the pool reaches about 11 clips per topic.
+
+**After centring g (+0.10) and growing loop rewards:**
+
+| Setting | B−C run gap | Tiring found | Forced (B) |
+| --- | --- | --- | --- |
+| 44 clips, blocks of 12 | +0.87 | −0.08 | 41.5% |
+| ~88 clips, blocks of 12 | +1.33 | −0.08 | 5.4% (just over) |
+| ~88 clips, blocks of 11 | +1.35 | −0.09 | 4.3% |
+| ~132 clips, blocks of 12 | +1.37 | −0.09 | 0.4% |
+
+Stay rates on ~88 clips: after a video that went well, B stays 76% and C 31%;
+after a like, 82% and 15%. B now stays longer, so it uses up topics faster: plan
+on blocks of 11 with ~11 clips per topic, or ~12+ clips per topic for blocks of 12.
 
 ## Local demo (testing only)
 

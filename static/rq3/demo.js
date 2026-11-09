@@ -244,6 +244,11 @@ const RULE_NAMES = {
   unannotated: "#8 unannotated",
 };
 
+function ruleName(rule, loop, loopsTotal) {
+  const name = RULE_NAMES[rule];
+  return loop ? `${name} (loop ${loop} of ${loopsTotal})` : name;
+}
+
 function facts(rows) {
   return `<dl class="facts">${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>`;
 }
@@ -278,10 +283,10 @@ function updateLive() {
   const marker = $("#marker");
   if (marker) marker.style.left = `${(100 * t) / clip.duration_s}%`;
   let rule;
-  if (reachedEnd) rule = { rule: "reached_end", g: 0.2 };
+  if (reachedEnd) rule = { rule: "reached_end", g: clip.rule_timeline.find((s) => s.rule === "after_payoff")?.g ?? 0.3, loop: null };
   else rule = clip.rule_timeline.find((seg) => t >= seg.start_s && t < seg.end_s) || clip.rule_timeline.at(-1);
   const extras = [`at ${mmss(t)}`, loops ? `looped ${loops}×` : "", liked ? "liked" : ""].filter(Boolean).join(" · ");
-  $("#live-rule").innerHTML = `If you swipe now: <span class="${tone(rule.g)}">${RULE_NAMES[rule.rule]} → g = ${signed(rule.g)}</span> <span class="muted">(${extras})</span>`;
+  $("#live-rule").innerHTML = `If you swipe now: <span class="${tone(rule.g)}">${ruleName(rule.rule, rule.loop, clip.loops.length)} → g = ${signed(rule.g)}</span> <span class="muted">(${extras})</span>`;
 }
 
 function renderScored(scored) {
@@ -295,7 +300,7 @@ function renderScored(scored) {
   el.innerHTML = facts([
     ["Video", scored.clip_title],
     ["Swiped at", `${mmss(scored.swipe_s)} of ${mmss(scored.duration_s)}${scored.reached_end ? " (during a replay)" : ""}`],
-    ["Rule matched", `${RULE_NAMES[scored.rule]} → g = <span class="${tone(scored.g)}">${signed(scored.g)}</span>`],
+    ["Rule matched", `${ruleName(scored.rule, scored.loop, scored.loops_total)} → g = <span class="${tone(scored.g)}">${signed(scored.g)}</span>`],
     ["w (fraction watched)", `${fmt(scored.w)} <span class="muted">(${fmt(scored.watched_s, 1)} s played, capped at 1)</span>`],
     ["w̄ (your average)", `${fmt(scored.w_bar)}${scored.warmup ? ' <span class="muted">(warm-up default for the first 3 videos)</span>' : ""}`],
     ["e = (w − w̄) + g", `<b class="${tone(scored.e)}">${signed(scored.e)}</b>`],

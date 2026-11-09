@@ -42,14 +42,14 @@ def test_settled_decisions():
     assert config.cooldown == 3
     assert config.micro_payoff_window_s == 1.0
     assert dict(config.stage_adjustment) == {
-        "hook": -0.4,
-        "setup": -0.3,
-        "development": -0.2,
-        "buildup": -0.1,
-        "after_payoff": 0.2,
+        "hook": -0.3,
+        "setup": -0.2,
+        "development": -0.1,
+        "buildup": 0.0,
+        "after_payoff": 0.3,
     }
-    assert config.mid_loop_adjustment == -0.2
-    assert config.after_micro_payoff_adjustment == 0.1
+    assert (config.mid_loop_adjustment_first, config.mid_loop_adjustment_last) == (-0.1, 0.1)
+    assert (config.micro_payoff_adjustment_first, config.micro_payoff_adjustment_last) == (0.1, 0.3)
     assert config.payoff_grace_s == 0.0
     assert (config.b_initial_stay_probability, config.c_initial_stay_probability) == (0.75, 0.45)
 

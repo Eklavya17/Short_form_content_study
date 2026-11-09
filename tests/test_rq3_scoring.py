@@ -64,7 +64,7 @@ def rule(clip: Clip, t: float, reached_end: bool = False, config=CONFIG) -> Swip
 
 def test_rule_1_reaching_the_end_wins_even_if_they_swipe_in_the_replays_hook():
     assert rule(story_clip(), 1.0, reached_end=True) is SwipeRule.REACHED_END
-    assert swipe_adjustment(story_clip(), 1.0, True, CONFIG) == 0.2
+    assert swipe_adjustment(story_clip(), 1.0, True, CONFIG) == 0.3
 
 
 def test_rule_2_hook():
@@ -89,6 +89,11 @@ def test_rule_4_within_window_after_a_micro_payoff():
     assert rule(loop_clip(), 11.1) is SwipeRule.MID_LOOP
 
 
+def test_rule_4_reward_grows_with_each_micro_payoff():
+    assert swipe_adjustment(loop_clip(), 10.5, False, CONFIG) == pytest.approx(0.1)  # after loop 1 of 3
+    assert swipe_adjustment(loop_clip(), 20.5, False, CONFIG) == pytest.approx(0.2)  # after loop 2 of 3
+
+
 def test_rule_4_window_is_a_setting():
     wider = replace(CONFIG, micro_payoff_window_s=2.0)
     assert rule(loop_clip(), 11.5, config=wider) is SwipeRule.AFTER_MICRO_PAYOFF
@@ -102,7 +107,21 @@ def test_rule_5_story_stages():
 
 def test_rule_6_mid_loop():
     assert rule(loop_clip(), 5.0) is SwipeRule.MID_LOOP
-    assert swipe_adjustment(loop_clip(), 5.0, False, CONFIG) == -0.2
+
+
+def test_rule_6_leaving_mid_loop_costs_less_in_later_loops():
+    assert swipe_adjustment(loop_clip(), 5.0, False, CONFIG) == pytest.approx(-0.1)  # loop 1
+    assert swipe_adjustment(loop_clip(), 15.0, False, CONFIG) == pytest.approx(0.0)  # loop 2
+    assert swipe_adjustment(loop_clip(), 25.0, False, CONFIG) == pytest.approx(0.1)  # loop 3
+
+
+def test_each_loop_is_scored_higher_than_the_one_before():
+    four_loops = loop_clip(duration_s=40.0, loops=tuple(Loop(i, 10 * (i - 1), 10 * i) for i in range(1, 5)))
+    mid_loop = [swipe_adjustment(four_loops, 10 * i - 5, False, CONFIG) for i in range(1, 5)]
+    after_payoff = [swipe_adjustment(four_loops, 10 * i + 0.5, False, CONFIG) for i in range(1, 4)]
+    assert mid_loop == sorted(mid_loop) and len(set(mid_loop)) == 4
+    assert after_payoff == sorted(after_payoff) and len(set(after_payoff)) == 3
+    assert mid_loop[0] == pytest.approx(-0.1) and mid_loop[-1] == pytest.approx(0.1)
 
 
 def test_rule_7_short_gap_belongs_to_the_stage_before():
@@ -119,7 +138,7 @@ def test_rule_7_long_gap_is_unannotated():
 def test_rule_8_nothing_annotated():
     bare = loop_clip(stages=(), loops=(Loop(1, 10, 20),))
     assert rule(bare, 5.0) is SwipeRule.UNANNOTATED
-    assert swipe_adjustment(bare, 5.0, False, CONFIG) == -0.2
+    assert swipe_adjustment(bare, 5.0, False, CONFIG) == -0.1
 
 
 # --- Rule order on real clips ----------------------------------------------------------
@@ -155,11 +174,11 @@ def engagement(clip: Clip, swipe_s: float, reached_end: bool = False) -> float:
 @pytest.mark.parametrize(
     "swipe_s, reached_end, expected",
     [
-        (2, False, 2 / 60.024 - 0.5 - 0.4),  # hook
-        (30, False, 30 / 60.024 - 0.5 - 0.2),  # development
-        (50, False, 50 / 60.024 - 0.5 - 0.1),  # buildup
-        (56, False, 56 / 60.024 - 0.5 + 0.2),  # after payoff
-        (3, True, 1.0 - 0.5 + 0.2),  # watched to the end, swiped in the replay
+        (2, False, 2 / 60.024 - 0.5 - 0.3),  # hook
+        (30, False, 30 / 60.024 - 0.5 - 0.1),  # development
+        (50, False, 50 / 60.024 - 0.5 + 0.0),  # buildup
+        (56, False, 56 / 60.024 - 0.5 + 0.3),  # after payoff
+        (3, True, 1.0 - 0.5 + 0.3),  # watched to the end, swiped in the replay
     ],
 )
 def test_python_catch_examples(swipe_s, reached_end, expected):
@@ -169,10 +188,10 @@ def test_python_catch_examples(swipe_s, reached_end, expected):
 @pytest.mark.parametrize(
     "swipe_s, expected",
     [
-        (2, 2 / 46.092 - 0.5 - 0.4),  # hook
-        (10, 10 / 46.092 - 0.5 - 0.2),  # mid-loop
-        (15.5, 15.5 / 46.092 - 0.5 + 0.1),  # just after a micro-payoff
-        (40, 40 / 46.092 - 0.5 + 0.2),  # after the final payoff
+        (2, 2 / 46.092 - 0.5 - 0.3),  # hook
+        (10, 10 / 46.092 - 0.5 - 0.05),  # mid-loop, loop 2 of 5
+        (15.5, 15.5 / 46.092 - 0.5 + 0.15),  # just after loop 2's micro-payoff
+        (40, 40 / 46.092 - 0.5 + 0.3),  # after the final payoff
     ],
 )
 def test_guess_the_animal_examples(swipe_s, expected):
@@ -185,8 +204,8 @@ def test_guess_the_animal_examples(swipe_s, expected):
 def test_score_uses_the_viewers_own_average_after_warmup():
     clip = story_clip()
     outcome = Outcome(clip.id, watched_s=15, swipe_s=15, reached_end=False, liked=True)
-    # w = 0.5, w_bar = 0.2 after three videos, g = development -0.2; the like is ignored.
-    assert score_outcome(clip, outcome, [0.2, 0.2, 0.2], CONFIG) == pytest.approx(0.1)
+    # w = 0.5, w_bar = 0.2 after three videos, g = development -0.1; the like is ignored.
+    assert score_outcome(clip, outcome, [0.2, 0.2, 0.2], CONFIG) == pytest.approx(0.2)
 
 
 def test_score_rejects_an_outcome_for_another_clip():
@@ -199,4 +218,4 @@ def test_every_catalog_clip_scores_at_every_second():
     for clip in CATALOG.values():
         for second in range(int(clip.duration_s) + 1):
             g = swipe_adjustment(clip, float(second), False, CONFIG)
-            assert -0.4 <= g <= 0.2, (clip.id, second)
+            assert -0.3 <= g <= 0.3, (clip.id, second)

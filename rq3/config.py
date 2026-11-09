@@ -24,23 +24,30 @@ class FeedConfig:
     default_average_watch: float = 0.5
     warmup_videos: int = 3
 
+    # All g values below are centred so that an ordinary video scores about 0
+    # (the first table was 0.10 lower and left only ~35% of videos positive).
+
     # g by the codebook stage the viewer swiped in. Used for every structure:
     # loop clips have hooks, setups and (hybrids) buildups and payoffs too.
     stage_adjustment: Mapping[str, float] = field(
         default_factory=lambda: _frozen(
             {
-                "hook": -0.4,
-                "setup": -0.3,
-                "development": -0.2,
-                "buildup": -0.1,
-                "after_payoff": 0.2,  # also used when the video was watched to the end
+                "hook": -0.3,
+                "setup": -0.2,
+                "development": -0.1,
+                "buildup": 0.0,
+                "after_payoff": 0.3,  # also used when the video was watched to the end
             }
         )
     )
 
-    # g inside the loops of loop and hybrid clips.
-    mid_loop_adjustment: float = -0.2
-    after_micro_payoff_adjustment: float = 0.1
+    # g inside the loops of loop and hybrid clips grows with each loop: every
+    # micro-payoff seen makes leaving less of a rejection. Values run linearly
+    # from the first loop to the last.
+    mid_loop_adjustment_first: float = -0.1  # in loop 1, before any payoff
+    mid_loop_adjustment_last: float = 0.1  # in the last loop
+    micro_payoff_adjustment_first: float = 0.1  # just after loop 1's payoff
+    micro_payoff_adjustment_last: float = 0.3  # just after the last loop's payoff
     # A swipe this soon after a loop's micro-payoff counts as "left satisfied".
     micro_payoff_window_s: float = 1.0
 
@@ -49,7 +56,7 @@ class FeedConfig:
     # A swipe in a gap this short between annotated stages counts as the stage
     # before it; in a longer gap, or where nothing is annotated, it is unannotated.
     max_filled_gap_s: float = 2.0
-    unannotated_adjustment: float = -0.2
+    unannotated_adjustment: float = -0.1
 
     # --- Stay probability p (feeds B and C) ------------------------------------
     # p at the start of every same-topic run (the value it resets to on a switch).

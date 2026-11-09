@@ -38,9 +38,8 @@ from rq3.feeds import (
 )
 from rq3.scoring import (
     Outcome,
-    adjustment_for,
     average_watch,
-    classify_swipe,
+    judge_swipe,
     watch_fraction,
 )
 
@@ -81,12 +80,19 @@ def rule_timeline(clip: Clip) -> list[dict[str, Any]]:
     segments: list[dict[str, Any]] = []
     t = 0.0
     while t < clip.duration_s:
-        rule = classify_swipe(clip, t, False, CONFIG)
-        if segments and segments[-1]["rule"] == rule.value:
+        verdict = judge_swipe(clip, t, False, CONFIG)
+        key = (verdict.rule.value, verdict.g, verdict.loop_index)
+        if segments and (segments[-1]["rule"], segments[-1]["g"], segments[-1]["loop"]) == key:
             segments[-1]["end_s"] = round(t + TIMELINE_STEP_S, 2)
         else:
             segments.append(
-                {"rule": rule.value, "g": adjustment_for(rule, CONFIG), "start_s": t, "end_s": round(t + TIMELINE_STEP_S, 2)}
+                {
+                    "rule": verdict.rule.value,
+                    "g": verdict.g,
+                    "loop": verdict.loop_index,
+                    "start_s": t,
+                    "end_s": round(t + TIMELINE_STEP_S, 2),
+                }
             )
         t = round(t + TIMELINE_STEP_S, 2)
     return segments
@@ -225,14 +231,16 @@ def swipe():
         reached_end=bool(data["reached_end"]),
         liked=bool(data["liked"]),
     )
-    rule = classify_swipe(clip, outcome.swipe_s, outcome.reached_end, CONFIG)
+    verdict = judge_swipe(clip, outcome.swipe_s, outcome.reached_end, CONFIG)
     scored = {
         "clip_title": clip.title,
         "swipe_s": round(outcome.swipe_s, 2),
         "duration_s": clip.duration_s,
         "watched_s": round(outcome.watched_s, 2),
-        "rule": rule.value,
-        "g": adjustment_for(rule, CONFIG),
+        "rule": verdict.rule.value,
+        "g": verdict.g,
+        "loop": verdict.loop_index,
+        "loops_total": len(clip.loops),
         "w": round(watch_fraction(outcome.watched_s, clip.duration_s), 3),
         "w_bar": round(average_watch(state.watch_history, CONFIG), 3),
         "warmup": len(state.watch_history) < CONFIG.warmup_videos,

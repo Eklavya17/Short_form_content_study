@@ -103,14 +103,14 @@ def p_after_first_video(feed: Feed, outcome_for) -> float:
 
 
 def test_full_watch_raises_p_in_b_and_lowers_it_in_c():
-    # e = (1.0 - 0.5) + 0.2 = 0.7; step 0.3 moves p by 0.21 from B's 0.75 and C's 0.45.
-    assert p_after_first_video(Feed.B, watched_all) == pytest.approx(0.9)  # 0.96, capped
-    assert p_after_first_video(Feed.C, watched_all) == pytest.approx(0.24)
+    # e = (1.0 - 0.5) + 0.3 = 0.8; step 0.3 moves p by 0.24 from B's 0.75 and C's 0.45.
+    assert p_after_first_video(Feed.B, watched_all) == pytest.approx(0.9)  # 0.99, capped
+    assert p_after_first_video(Feed.C, watched_all) == pytest.approx(0.21)
 
 
 def test_a_like_pushes_p_to_the_bounds():
-    assert p_after_first_video(Feed.B, liked_it) == pytest.approx(0.9)  # 0.75 + 0.21 + 0.25, capped
-    assert p_after_first_video(Feed.C, liked_it) == pytest.approx(0.15)  # 0.45 - 0.21 - 0.25, floored
+    assert p_after_first_video(Feed.B, liked_it) == pytest.approx(0.9)  # 0.75 + 0.24 + 0.25, capped
+    assert p_after_first_video(Feed.C, liked_it) == pytest.approx(0.15)  # 0.45 - 0.24 - 0.25, floored
 
 
 def test_b_and_c_start_runs_from_their_own_p():
