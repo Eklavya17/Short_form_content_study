@@ -2,6 +2,7 @@
 
 Run:
     python -m rq3.demo            then open http://127.0.0.1:5001
+                                  (participant preview: http://127.0.0.1:5001/participant)
     python -m rq3.demo --host 0.0.0.0 --port 8000   (e.g. on a course VM)
 
 It runs the real engine (rq3.feeds, rq3.scoring) on the real catalog. Each browser
@@ -36,6 +37,7 @@ from rq3.feeds import (
     restore_state,
     topic_odds,
 )
+from rq3.preview import preview
 from rq3.scoring import (
     Outcome,
     average_watch,
@@ -51,6 +53,17 @@ TIMELINE_STEP_S = 0.25
 
 app = Flask(__name__, template_folder=str(ROOT / "templates"), static_folder=str(ROOT / "static"))
 app.config["SECRET_KEY"] = os.environ.get("RQ3_DEMO_SECRET", secrets.token_hex(16))
+app.register_blueprint(preview)
+
+
+@app.before_request
+def avoid_slow_localhost():
+    # On Windows, "localhost" tries IPv6 first and adds ~0.3 s to every request,
+    # because the server listens on IPv4 only. Send page loads to 127.0.0.1.
+    is_page = request.method == "GET" and "/api/" not in request.path and not request.path.startswith("/static/")
+    if is_page and request.host.split(":")[0] == "localhost":
+        return redirect(request.url.replace("://localhost", "://127.0.0.1", 1))
+    return None
 
 
 @dataclass
@@ -191,10 +204,6 @@ def response_for(demo: DemoSession, decision: Decision, explanation: dict, score
 
 @app.get("/")
 def demo_page():
-    # On Windows, "localhost" tries IPv6 first and adds ~0.3 s to every request,
-    # because the server listens on IPv4 only. Send the browser to 127.0.0.1.
-    if request.host.split(":")[0] == "localhost":
-        return redirect(request.url.replace("://localhost", "://127.0.0.1", 1))
     return render_template("rq3/demo.html", topics=TOPICS, config=CONFIG)
 
 

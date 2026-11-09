@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Short Video Study</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='rq3/demo.css') }}">
+</head>
+<body class="participant">
+  <header class="topbar">
+    <strong>Short video study</strong>
+    <span class="muted">Preview for testing: consent and surveys are added later.</span>
+    <span class="muted push" id="part-label"></span>
+  </header>
+
+  <!-- 1. Welcome: ID and topic interest -->
+  <section class="screen" id="screen-welcome" hidden>
+    <div class="card narrow">
+      <h1>Welcome</h1>
+      <label class="field">
+        <span>Participant ID</span>
+        <input id="participant-id" type="text" autocomplete="off" placeholder="e.g. P001">
+      </label>
+      <p>How interested are you in each kind of video?</p>
+      <div class="ratings">
+        {% for topic in topics %}
+        <div class="rating" role="radiogroup" aria-label="{{ topic_names.get(topic, topic) }}" data-topic="{{ topic }}">
+          <span class="rating-name">{{ topic_names.get(topic, topic) }}</span>
+          {% for value in range(1, 6) %}
+          <label><input type="radio" name="{{ topic }}" value="{{ value }}" {% if value == 3 %}checked{% endif %}>{{ value }}</label>
+          {% endfor %}
+        </div>
+        {% endfor %}
+      </div>
+      <p class="muted small">1 = not at all interested, 5 = very interested.</p>
+      <details class="testing">
+        <summary>Testing options</summary>
+        <label class="field inline">
+          <span>Videos per part</span>
+          <input id="videos-per-part" type="number" min="1" max="14" value="{{ videos_per_part }}">
+        </label>
+      </details>
+      <button id="begin-button" class="primary" type="button">Continue</button>
+      <p class="status" id="welcome-status"></p>
+    </div>
+  </section>
+
+  <!-- 2. Before each part -->
+  <section class="screen" id="screen-ready" hidden>
+    <div class="card narrow">
+      <h1 id="ready-title">Part 1 of 3</h1>
+      <p>You'll scroll through short videos, as you would on TikTok or YouTube Shorts.
+        Watch each one as long as you like, then move on.</p>
+      <ul class="how">
+        <li><b>Next video:</b> scroll down, press ↓, swipe up, or tap ↓</li>
+        <li><b>Like:</b> tap ♥, double-click, or press L</li>
+        <li><b>Pause:</b> click the video or press Space</li>
+      </ul>
+      <p class="muted small">Sound is on. You can't go back to a previous video.</p>
+      <button id="start-part-button" class="primary" type="button">Start</button>
+    </div>
+  </section>
+
+  <!-- 3. Watching -->
+  <section class="screen stage" id="screen-watching" hidden>
+    <div class="phone" id="phone">
+      <video id="player" playsinline preload="auto"></video>
+      <div class="caption" id="caption"></div>
+      <div class="actions">
+        <button id="like-button" type="button" aria-label="Like">♥</button>
+        <button id="next-button" type="button" aria-label="Next video">↓</button>
+      </div>
+      <div class="progress"><div id="progress-bar"></div></div>
+    </div>
+    <p class="status" id="status"></p>
+  </section>
+
+  <!-- 4. Between parts: the Qualtrics survey goes here -->
+  <section class="screen" id="screen-break" hidden>
+    <div class="card narrow">
+      <h1 id="break-title">Part 1 of 3 complete</h1>
+      <div class="survey-slot">
+        <b>Survey placeholder</b>
+        <p class="muted" id="survey-note">The Qualtrics survey about part 1 will open here.</p>
+      </div>
+      <button id="continue-button" class="primary" type="button">Continue to part 2</button>
+    </div>
+  </section>
+
+  <!-- 5. Done -->
+  <section class="screen" id="screen-done" hidden>
+    <div class="card narrow">
+      <h1>All done, thank you!</h1>
+      <div class="survey-slot">
+        <b>Survey placeholder</b>
+        <p class="muted">The final Qualtrics survey will open here.</p>
+      </div>
+      <details class="testing" open>
+        <summary>Testing</summary>
+        <p class="muted" id="done-info"></p>
+        <div class="row">
+          <a class="button" href="/participant/api/export">Download this participant's data (JSON)</a>
+          <button id="new-button" type="button">Start a new participant</button>
+          <a class="button" href="/">Open the debug demo</a>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <script src="{{ url_for('static', filename='rq3/swipe_player.js') }}"></script>
+  <script src="{{ url_for('static', filename='rq3/participant.js') }}"></script>
+</body>
+</html>

@@ -17,6 +17,7 @@ Module map (see docs/RQ3.md for the full plan):
     feeds          the feed engine: picks the next video for A, B and C
     simulation     simulated viewers, used to tune config before any participant
     demo           local demo page with a debug panel (testing only)
+    preview        participant preview: three parts in a balanced order (testing only)
     storage        database schema and queries for the study
     web            Flask routes for the study flow and the player API
     analysis       per-impression measures and the reported comparisons

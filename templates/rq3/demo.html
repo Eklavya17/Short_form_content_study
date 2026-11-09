@@ -10,6 +10,7 @@
   <header class="topbar">
     <strong>RQ3 feed demo</strong>
     <span class="muted">Testing only. Swipe: scroll down, ↓ key, swipe up, or Next. Like: ♥, double-click, or L. Pause: click or Space.</span>
+    <a class="button push" href="/participant">Participant preview →</a>
     <button id="toggle-panel" type="button">Hide panel</button>
   </header>
 
@@ -94,6 +95,7 @@
   </main>
 
   <script>window.RQ3 = {{ {"cooldown": config.cooldown, "runCap": config.max_run_length} | tojson }};</script>
+  <script src="{{ url_for('static', filename='rq3/swipe_player.js') }}"></script>
   <script src="{{ url_for('static', filename='rq3/demo.js') }}"></script>
 </body>
 </html>

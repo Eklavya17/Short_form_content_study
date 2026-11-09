@@ -3,48 +3,27 @@
 "use strict";
 
 const $ = (selector) => document.querySelector(selector);
-const player = $("#player");
-const status = $("#status");
 
-// Playback of the current clip.
-let clip = null;
-let watchedS = 0; // seconds actually played, replays included, pauses excluded
-let lastTime = 0;
-let reachedEnd = false;
-let loops = 0;
-let liked = false;
-let busy = false;
-
-// --- Server calls -------------------------------------------------------------------
-
-const SERVER_DOWN = "Can't reach the demo server. Start it with `python -m rq3.demo`, then reload this page.";
-
-async function api(url, body) {
-  let response;
-  try {
-    response = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body ?? {}),
+const player = createSwipePlayer({
+  phone: $("#phone"),
+  video: $("#player"),
+  stage: $(".stage"),
+  likeButton: $("#like-button"),
+  nextButton: $("#next-button"),
+  caption: $("#caption"),
+  progressBar: $("#progress-bar"),
+  status: $("#status"),
+  onSwipe: async (s) => {
+    const data = await postJSON("/api/swipe", {
+      watched_s: s.watchedS,
+      swipe_s: s.swipeS,
+      reached_end: s.reachedEnd,
+      liked: s.liked,
     });
-  } catch {
-    throw new Error(SERVER_DOWN);
-  }
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.error || `Request failed: ${response.status}`);
-  showError("");
-  return data;
-}
-
-function showError(message) {
-  status.textContent = message;
-  status.classList.toggle("error", Boolean(message));
-}
-
-function setLoading(on) {
-  $("#phone").classList.toggle("loading", on);
-  if (on) status.textContent = "Loading next video…";
-}
+    render(data);
+  },
+  onTick: updateLive,
+});
 
 function chosenFeed() {
   return document.querySelector("input[name=feed]:checked").value;
@@ -60,46 +39,24 @@ function ratings() {
 
 async function startBlock() {
   try {
-    const data = await api("/api/start", { feed: chosenFeed(), ratings: ratings() });
+    const data = await postJSON("/api/start", { feed: chosenFeed(), ratings: ratings() });
     $("#start-overlay").hidden = true;
+    player.showError("");
     render(data);
   } catch (error) {
-    showError(error.message);
-  }
-}
-
-async function swipe() {
-  if (!clip || busy) return;
-  busy = true;
-  player.pause();
-  setLoading(true);
-  try {
-    const data = await api("/api/swipe", {
-      watched_s: watchedS,
-      swipe_s: player.currentTime,
-      reached_end: reachedEnd,
-      liked,
-    });
-    render(data);
-  } catch (error) {
-    setLoading(false);
-    showError(error.message);
-  } finally {
-    busy = false;
+    player.showError(error.message);
   }
 }
 
 async function resetSession() {
   let data;
   try {
-    data = await api("/api/reset");
+    data = await postJSON("/api/reset");
   } catch (error) {
-    showError(error.message);
+    player.showError(error.message);
     return;
   }
-  clip = null;
-  player.removeAttribute("src");
-  player.load();
+  player.clear();
   $("#start-overlay").hidden = false;
   for (const id of ["#now-playing", "#scored", "#decision", "#summary"]) $(id).textContent = "";
   $("#timeline").innerHTML = "";
@@ -109,113 +66,6 @@ async function resetSession() {
   $("#pool-info").textContent = `All ${data.pool_size} clips available again.`;
 }
 
-// --- Playback -----------------------------------------------------------------------
-
-function loadClip(next) {
-  clip = next;
-  watchedS = 0;
-  lastTime = 0;
-  reachedEnd = false;
-  loops = 0;
-  liked = false;
-  $("#like-button").classList.remove("liked");
-  $("#caption").textContent = `${next.topic} · ${next.title}`;
-  player.src = next.url;
-  player.play().catch(() => {
-    status.textContent = "Click the video to start playback.";
-  });
-  drawTimeline();
-}
-
-player.addEventListener("timeupdate", () => {
-  const delta = player.currentTime - lastTime;
-  if (!player.paused && delta > 0 && delta < 1.5) watchedS += delta;
-  lastTime = player.currentTime;
-  if (clip) {
-    $("#progress-bar").style.width = `${(100 * player.currentTime) / clip.duration_s}%`;
-    updateLive();
-  }
-});
-
-player.addEventListener("ended", () => {
-  // Loop like a short-video app, and remember that the end was reached.
-  reachedEnd = true;
-  loops += 1;
-  lastTime = 0;
-  player.currentTime = 0;
-  player.play();
-});
-
-player.addEventListener("playing", () => {
-  setLoading(false);
-  if (!status.classList.contains("error")) status.textContent = "";
-});
-
-function toggleLike() {
-  if (!clip) return;
-  liked = !liked;
-  $("#like-button").classList.toggle("liked", liked);
-  updateLive();
-}
-
-function togglePause() {
-  if (!clip) return;
-  if (player.paused) player.play();
-  else player.pause();
-}
-
-// --- Gestures -----------------------------------------------------------------------
-
-// One scroll gesture = one swipe. A mouse notch, a trackpad flick and smooth
-// scrolling all arrive as a stream of wheel events, so add them up, swipe once
-// the total passes a threshold, then ignore the rest of the gesture until the
-// wheel has been quiet for a moment. Scrolling up does nothing (no going back).
-const WHEEL_THRESHOLD_PX = 60;
-const WHEEL_QUIET_MS = 300;
-let wheelTotal = 0;
-let wheelSpent = false;
-let wheelQuietTimer = null;
-
-$(".stage").addEventListener("wheel", (event) => {
-  event.preventDefault();
-  const pixels = event.deltaMode === 1 ? event.deltaY * 16 : event.deltaMode === 2 ? event.deltaY * 800 : event.deltaY;
-  clearTimeout(wheelQuietTimer);
-  wheelQuietTimer = setTimeout(() => { wheelTotal = 0; wheelSpent = false; }, WHEEL_QUIET_MS);
-  if (wheelSpent) return;
-  wheelTotal = Math.max(0, wheelTotal + pixels);
-  if (wheelTotal >= WHEEL_THRESHOLD_PX) {
-    wheelSpent = true;
-    swipe();
-  }
-}, { passive: false });
-
-let touchStartY = null;
-$("#phone").addEventListener("touchstart", (event) => { touchStartY = event.touches[0].clientY; });
-$("#phone").addEventListener("touchend", (event) => {
-  if (touchStartY !== null && touchStartY - event.changedTouches[0].clientY > 60) swipe();
-  touchStartY = null;
-});
-
-let clickTimer = null;
-player.addEventListener("click", () => {
-  // Wait briefly so a double-click (like) does not also pause.
-  clearTimeout(clickTimer);
-  clickTimer = setTimeout(togglePause, 250);
-});
-player.addEventListener("dblclick", () => {
-  clearTimeout(clickTimer);
-  if (!liked) toggleLike();
-});
-
-document.addEventListener("keydown", (event) => {
-  if (event.target.tagName === "INPUT") return;
-  if (event.key === "ArrowDown") { event.preventDefault(); swipe(); }
-  if (event.key === "l" || event.key === "L") toggleLike();
-  if (event.key === " ") { event.preventDefault(); togglePause(); }
-});
-
-$("#like-button").addEventListener("click", toggleLike);
-$("#next-button").addEventListener("click", swipe);
 $("#start-button").addEventListener("click", startBlock);
 $("#reset-button").addEventListener("click", resetSession);
 $("#toggle-panel").addEventListener("click", (event) => {
@@ -254,7 +104,8 @@ function facts(rows) {
 }
 
 function render(data) {
-  loadClip(data.clip);
+  player.load(data.clip, `${data.clip.topic} · ${data.clip.title}`);
+  drawTimeline();
   renderNowPlaying();
   renderScored(data.scored);
   renderDecision(data.decision);
@@ -264,12 +115,14 @@ function render(data) {
 }
 
 function renderNowPlaying() {
+  const clip = player.clip;
   const review = clip.review.length ? `<br><span class="muted">Catalog note: ${clip.review.join("; ")}</span>` : "";
   $("#now-playing").innerHTML = `<b>${clip.title}</b><br>${clip.topic} · ${clip.structure} · ${mmss(clip.duration_s)}${review}`;
   $("#now-playing").classList.remove("muted");
 }
 
 function drawTimeline() {
+  const clip = player.clip;
   const pct = (s) => `${(100 * s) / clip.duration_s}%`;
   const stages = clip.stages.map((s) =>
     `<div class="stage-band band-${s.label}" style="left:${pct(s.start_s)};width:${pct(s.end_s - s.start_s)}" title="${s.label} ${mmss(s.start_s)}–${mmss(s.end_s)}">${s.label}</div>`);
@@ -278,8 +131,7 @@ function drawTimeline() {
   $("#timeline").innerHTML = stages.join("") + loopBands.join("") + `<div class="marker" id="marker"></div>`;
 }
 
-function updateLive() {
-  const t = player.currentTime;
+function updateLive({ clip, time: t, reachedEnd, loops, liked }) {
   const marker = $("#marker");
   if (marker) marker.style.left = `${(100 * t) / clip.duration_s}%`;
   let rule;
