@@ -127,3 +127,55 @@ def test_swipe_without_a_playing_part_is_refused(study, db):
 def test_unknown_event_types_are_rejected(db):
     with pytest.raises(ValueError, match="Unknown event type"):
         storage.record_event(db, 1, {"event_type": "scrolled_sideways"})
+
+
+# --- Player events (Part 2, step 2) ------------------------------------------------------
+
+
+def event(status, event_type, **details):
+    return {"event_type": event_type, "clip_id": status.clip.id, "video_time": 1.5,
+            "client_wall_time": "2026-11-09T12:00:00Z", "details": details}
+
+
+def test_events_sent_with_a_swipe_are_stored_on_that_video(study, db):
+    study.begin(db, "P1", {}, videos_per_part=3)
+    first = study.next_part(db, "P1")
+    events = [event(first, "first_frame", load_ms=240), event(first, "like"), event(first, "swipe", source="wheel")]
+    study.swipe(db, "P1", report(first, events=events))
+    video = study.export(db, "P1")["parts"][0]["videos"][0]
+    assert [e["event_type"] for e in video["events"]] == ["first_frame", "like", "swipe"]
+    assert video["events"][0]["details"] == {"load_ms": 240}
+
+
+def test_late_batches_still_land_on_the_right_video(study, db):
+    study.begin(db, "P1", {}, videos_per_part=3)
+    first = study.next_part(db, "P1")
+    second = study.swipe(db, "P1", report(first))
+    kept = study.record_events(db, "P1", [event(first, "hidden"), event(second, "pause")])
+    videos = study.export(db, "P1")["parts"][0]["videos"]
+    assert kept == 2
+    assert [e["event_type"] for e in videos[0]["events"]] == ["hidden"]
+    assert [e["event_type"] for e in videos[1]["events"]] == ["pause"]
+
+
+def test_unknown_event_types_and_clips_are_dropped(study, db):
+    study.begin(db, "P1", {}, videos_per_part=3)
+    first = study.next_part(db, "P1")
+    bad = [{"event_type": "teleport", "clip_id": first.clip.id}, {"event_type": "pause", "clip_id": "not-shown"}]
+    assert study.record_events(db, "P1", bad + [event(first, "pause")]) == 1
+
+
+# --- Deleting --------------------------------------------------------------------------
+
+
+def test_deleting_a_participant_removes_everything_and_frees_their_order(study, db):
+    study.begin(db, "P1", {}, videos_per_part=2)
+    first = study.next_part(db, "P1")
+    study.swipe(db, "P1", report(first, events=[event(first, "like")]))
+    order = storage.get_participant(db, "P1")["feed_order"]
+    assert storage.delete_participant(db, "P1")
+    for table in storage.TABLES:
+        assert db.execute(f"SELECT COUNT(*) AS n FROM {table}").fetchone()["n"] == 0
+    assert study.begin(db, "P2", {}).stage == "ready"
+    assert storage.get_participant(db, "P2")["feed_order"] == order
+    assert not storage.delete_participant(db, "P1")

@@ -35,6 +35,7 @@ short-video-user-study/
 │   ├── storage.py                rq3_* tables and queries (Postgres)
 │   ├── study.py                  the participant flow on top of storage (no Flask)
 │   ├── devdb.py                  local throwaway Postgres for development and tests
+│   ├── admin.py                  list, show, delete participants; print participant links
 │   ├── demo.py                   local demo of the feeds with a debug panel (testing only)
 │   ├── preview.py                participant preview at /participant (testing only)
 │   ├── web.py                    Flask blueprint: study pages and player API
@@ -266,7 +267,7 @@ forgets its ID, so re-enter it; in step 3 the ID comes from the study link inste
 | `rq3_participants` | participant | ID, feed order, interest ratings, videos per part, device, completion time |
 | `rq3_blocks` | part | feed, start and end, engine state after the latest decision |
 | `rq3_impressions` | video shown | clip, topic, decision (stay/switch/forced), p, draw, run position, the engine state it came from, and the outcome the player reported |
-| `rq3_events` | player event | for step 2 |
+| `rq3_events` | player event | type, video time, browser time, details (see below) |
 
 Only raw facts are stored; swipe rule, g and e are recomputed when exporting.
 `rq3/study.py` runs each request in one transaction that locks the participant's
@@ -278,6 +279,68 @@ get different orders.
 The URL comes from `RQ3_DATABASE_URL`, never `DATABASE_URL`, because the RQ1
 README tells people to export `DATABASE_URL` for the live RQ1 database. Tests
 start their own throwaway Postgres (`pip install -r requirements-dev.txt`).
+
+## Player events (Part 2, step 2)
+
+The player reports every event below; each is stored against the video it is
+about, with the video time, the browser's clock and details.
+
+| Event | When | Details |
+| --- | --- | --- |
+| `first_frame` | The video first starts playing | `load_ms`: time from loading to first frame |
+| `swipe` | The viewer moves on | `source` (wheel, key, touch, button), `loops`, `watched_s`, `liked` |
+| `loop` | The video reaches its end and restarts | `loops` so far |
+| `like` / `unlike` | ♥, double-click or L | `source` |
+| `pause` / `resume` | Click or Space | |
+| `stall` / `stall_end` | Buffering after playback started | `stall_ms` on `stall_end` |
+| `hidden` / `visible` | Tab switched, window minimised, phone locked | |
+| `error` | The video failed to load | browser error `code` and `message` |
+
+Events are batched: sent every 5 s, inside each swipe request, and with a final
+beacon when the page is hidden or closed. Late batches still land on the right
+video, because a clip is shown at most once per participant. Unknown event types
+or clips are dropped, never failing the batch. `first_frame` is logged once per
+video, fixing RQ1's `video_started` firing on every resume.
+
+## Testing with participant links
+
+A participant link carries the ID: `/participant?pid=P001`. Opening it resumes
+that participant where they left off, or starts them at the welcome screen with
+the ID filled in and locked. IDs are 1-64 letters, digits, `-` or `_`.
+
+```bash
+.venv\Scripts\python.exe -m rq3.admin links P001 P002 P003
+```
+
+prints the links for the local server; add `--base https://<app>.onrender.com`
+once the study is on Render.
+
+**Where the links work:**
+
+| Who opens it | How |
+| --- | --- |
+| You, on the computer running the demo | `http://127.0.0.1:5001/participant?pid=P001`; use a private window per participant to keep their sessions apart |
+| Someone on the same home/lab network | Start with `python -m rq3.demo --host 0.0.0.0`, find your IP with `ipconfig`, share `http://<your-ip>:5001/participant?pid=P002`, allow Python through the Windows firewall. Campus Wi-Fi usually blocks device-to-device traffic, so this rarely works there |
+| Anyone on the campus network or VPN | Run the same command on a group VM (`fa26-cs598t-d01`, `--port 8000`) and share `http://fa26-cs598t-d01.cs.illinois.edu:8000/participant?pid=P003` |
+| Anyone, anywhere | Render (Part 2, step 6): the intended setup for the pilot |
+
+## Managing participants
+
+```bash
+.venv\Scripts\python.exe -m rq3.admin list
+.venv\Scripts\python.exe -m rq3.admin show P001
+.venv\Scripts\python.exe -m rq3.admin delete P001
+.venv\Scripts\python.exe -m rq3.admin delete-all
+```
+
+`list` shows each participant's feed order, parts done, videos shown and whether
+they finished. `show` prints everything stored for one participant as JSON (the
+same as the end screen's download). `delete` asks for confirmation (`--yes` skips
+it) and permanently removes the participant and all their parts, videos and
+events; their link then starts from the beginning and their feed order is freed
+for balancing. The commands use `RQ3_DATABASE_URL` when set, so with the Render
+database's external URL they manage the hosted study; otherwise the local one.
+The demo server can stay running while you use them.
 
 ## Conventions
 

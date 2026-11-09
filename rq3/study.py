@@ -30,6 +30,7 @@ from rq3.scoring import Outcome, judge_swipe, score_outcome, watch_fraction
 
 PARTS = 3
 PARTICIPANT_ID_PATTERN = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
+MAX_EVENTS_PER_REQUEST = 200
 
 
 class StudyError(ValueError):
@@ -88,8 +89,7 @@ class Study:
     ) -> Status:
         """Register a participant, or return where an existing one is."""
         participant_id = participant_id.strip()
-        if not PARTICIPANT_ID_PATTERN.match(participant_id):
-            raise StudyError("Participant ID must be 1-64 letters, digits, - or _.")
+        self.check_participant_id(participant_id)
         videos_per_part = videos_per_part or self.config.videos_per_block
         if not 1 <= videos_per_part <= self.max_videos_per_part:
             raise StudyError(f"Videos per part must be 1-{self.max_videos_per_part} with {len(self.clips)} clips.")
@@ -104,6 +104,11 @@ class Study:
                 storage.create_participant(db, participant_id, order, ratings, videos_per_part, device)
                 participant = storage.get_participant(db, participant_id)
             return self._status(db, participant)
+
+    @staticmethod
+    def check_participant_id(participant_id: str) -> None:
+        if not PARTICIPANT_ID_PATTERN.match(participant_id):
+            raise StudyError("Participant ID must be 1-64 letters, digits, - or _.")
 
     def status(self, db: storage.Connection, participant_id: str | None) -> Status:
         participant = storage.get_participant(db, participant_id) if participant_id else None
@@ -131,11 +136,12 @@ class Study:
         """Record how the viewer left the current video and pick the next one.
 
         `report` is what the player sends: clip_id, watched_s, swipe_s, reached_end,
-        liked. A report for any clip other than the one playing (a double click, an
-        old tab) is ignored.
+        liked, and any player events not yet sent. A report for any clip other than
+        the one playing (a double click, an old tab) only has its events recorded.
         """
         with db.transaction():
             participant = self._locked_participant(db, participant_id)
+            self._record_events(db, participant_id, report.get("events") or [])
             block = _open_block(storage.blocks_for(db, participant_id))
             if block is None:
                 raise StudyError("No part is playing.")
@@ -159,6 +165,12 @@ class Study:
             storage.record_impression(db, block["id"], len(impressions) + 1, _decision_row(decision))
             storage.save_feed_state(db, block["id"], state.snapshot())
             return self._status(db, participant)
+
+    def record_events(self, db: storage.Connection, participant_id: str, events: list[dict[str, Any]]) -> int:
+        """Store a batch of player events; returns how many were kept."""
+        with db.transaction():
+            self._locked_participant(db, participant_id)
+            return self._record_events(db, participant_id, events)
 
     def export(self, db: storage.Connection, participant_id: str) -> dict[str, Any]:
         """Everything stored for one participant, with scores recomputed from raw facts."""
@@ -184,6 +196,7 @@ class Study:
                     "shown_at": row["shown_at"],
                     "outcome": row["outcome"],
                     "scored": None,
+                    "events": storage.events_for(db, row["id"]),
                 }
                 if row["outcome"] is not None:
                     outcome = Outcome(clip.id, **row["outcome"])
@@ -219,6 +232,28 @@ class Study:
 
     # --- Helpers -------------------------------------------------------------------
 
+    def _record_events(self, db: storage.Connection, participant_id: str, events: list[dict[str, Any]]) -> int:
+        """Attach each event to the impression of the clip it is about. Events with an
+        unknown type or clip are dropped rather than failing the whole batch."""
+        kept = 0
+        impression_ids: dict[str, int | None] = {}
+        for event in events[:MAX_EVENTS_PER_REQUEST]:
+            clip_id = str(event.get("clip_id", ""))
+            if event.get("event_type") not in storage.EVENT_TYPES:
+                continue
+            if clip_id not in impression_ids:
+                impression_ids[clip_id] = storage.impression_for_clip(db, participant_id, clip_id)
+            if impression_ids[clip_id] is None:
+                continue
+            storage.record_event(db, impression_ids[clip_id], {
+                "event_type": event["event_type"],
+                "video_time": _number_or_none(event.get("video_time")),
+                "client_wall_time": str(event.get("client_wall_time", ""))[:40] or None,
+                "details": event.get("details") if isinstance(event.get("details"), dict) else {},
+            })
+            kept += 1
+        return kept
+
     def _locked_participant(self, db: storage.Connection, participant_id: str) -> dict[str, Any]:
         participant = storage.get_participant(db, participant_id, lock=True)
         if participant is None:
@@ -253,6 +288,13 @@ def _open_block(blocks: list[dict[str, Any]]) -> dict[str, Any] | None:
 
 def _rng() -> Random:
     return Random(secrets.randbits(64))
+
+
+def _number_or_none(value: Any) -> float | None:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
 
 
 def _clamp_rating(value: Any) -> int:

@@ -1,11 +1,18 @@
 // RQ3 participant preview: ID and topic interest, then three parts (one feed each,
 // in an order the server chooses), with a break screen where the Qualtrics survey
-// will go. The server decides every video; this page only plays them.
+// will go. The server decides every video; this page only plays them and reports
+// what happened (outcomes on each swipe, player events in batches).
+//
+// A participant link carries the ID: /participant?pid=P001. Opening it resumes
+// that participant, or starts them at the welcome screen with the ID filled in.
 "use strict";
 
 const $ = (selector) => document.querySelector(selector);
 const SCREENS = ["welcome", "ready", "watching", "break", "done"];
+const LINK_PID = new URLSearchParams(location.search).get("pid");
 let current = null; // last status from the server
+
+const eventLog = createEventLog("/participant/api/events");
 
 const player = createSwipePlayer({
   phone: $("#phone"),
@@ -16,6 +23,7 @@ const player = createSwipePlayer({
   caption: $("#caption"),
   progressBar: $("#progress-bar"),
   status: $("#status"),
+  onEvent: eventLog.add,
   onSwipe: async (s) => {
     const status = await postJSON("/participant/api/swipe", {
       clip_id: s.clip.id,
@@ -23,6 +31,7 @@ const player = createSwipePlayer({
       swipe_s: s.swipeS,
       reached_end: s.reachedEnd,
       liked: s.liked,
+      events: eventLog.takeAll(), // includes this swipe's own event
     });
     show(status);
   },
@@ -41,6 +50,9 @@ function show(status) {
 
   if (status.stage === "welcome") {
     player.clear();
+    const fromLink = Boolean(LINK_PID);
+    $("#participant-id").value = fromLink ? LINK_PID : "";
+    $("#participant-id").readOnly = fromLink;
     showScreen("welcome");
   } else if (status.stage === "ready") {
     $("#ready-title").textContent = `Part ${done + 1} of ${total}`;
@@ -94,8 +106,8 @@ async function startNextPart() {
 }
 
 async function newParticipant() {
-  show(await postJSON("/participant/api/new"));
-  $("#participant-id").value = "";
+  await postJSON("/participant/api/new");
+  location.href = "/participant"; // drop any ?pid= from the address
 }
 
 $("#begin-button").addEventListener("click", begin);
@@ -108,8 +120,10 @@ $("#continue-button").addEventListener("click", () => {
 });
 $("#new-button").addEventListener("click", newParticipant);
 
-// Resume where this browser left off (after a refresh, for example).
-fetch("/participant/api/status")
-  .then((response) => response.json())
+// Opening a participant link resumes that participant; otherwise resume whoever
+// this browser was last (after a refresh, for example).
+(LINK_PID
+  ? postJSON("/participant/api/arrive", { participant_id: LINK_PID })
+  : fetch("/participant/api/status").then((response) => response.json()))
   .then(show)
-  .catch(() => setWelcomeError(SERVER_DOWN));
+  .catch((error) => { showScreen("welcome"); setWelcomeError(error.message); });

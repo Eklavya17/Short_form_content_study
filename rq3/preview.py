@@ -77,6 +77,19 @@ def status():
     return jsonify(STUDY.status(db(), participant_id() or None).to_json())
 
 
+@preview.post("/api/arrive")
+def arrive():
+    """Opened from a participant link (?pid=...): resume them if they exist."""
+    pid = str(request.get_json(force=True).get("participant_id", "")).strip()
+    STUDY.check_participant_id(pid)
+    result = STUDY.status(db(), pid)
+    if result.stage == "welcome":
+        session.pop("participant_id", None)
+    else:
+        session["participant_id"] = pid
+    return jsonify(result.to_json())
+
+
 @preview.post("/api/begin")
 def begin():
     data = request.get_json(force=True)
@@ -99,6 +112,15 @@ def next_part():
 @preview.post("/api/swipe")
 def swipe():
     return jsonify(STUDY.swipe(db(), participant_id(), request.get_json(force=True)).to_json())
+
+
+@preview.post("/api/events")
+def events():
+    """A batch of player events (also sent by the browser as the page closes)."""
+    if not participant_id():
+        return jsonify({"kept": 0})
+    data = request.get_json(force=True, silent=True) or {}
+    return jsonify({"kept": STUDY.record_events(db(), participant_id(), data.get("events") or [])})
 
 
 @preview.post("/api/new")

@@ -9,6 +9,10 @@
 //   like:   the ♥ button, double-click, or L
 //   pause:  click the video or Space
 // Scrolling up does nothing: there is no going back.
+//
+// It also reports player events through `onEvent` (see rq3/storage.py
+// EVENT_TYPES): first_frame, swipe, loop, like, unlike, pause, resume, stall,
+// stall_end, hidden, visible, error.
 "use strict";
 
 const SERVER_DOWN = "Can't reach the server. Start it with `python -m rq3.demo`, then reload this page.";
@@ -29,7 +33,46 @@ async function postJSON(url, body) {
   return data;
 }
 
-function createSwipePlayer({ phone, video, stage, likeButton, nextButton, caption, progressBar, status, onSwipe, onTick }) {
+// Collects player events and sends them in batches: every few seconds, inside each
+// swipe request (`takeAll`), and with a final beacon when the page is hidden or
+// closed, so leaving mid-video loses nothing.
+function createEventLog(url, { flushEveryMs = 5000 } = {}) {
+  let queue = [];
+
+  function add(event) {
+    queue.push(event);
+  }
+
+  function takeAll() {
+    const events = queue;
+    queue = [];
+    return events;
+  }
+
+  async function flush() {
+    if (!queue.length) return;
+    const events = takeAll();
+    try {
+      await postJSON(url, { events });
+    } catch {
+      queue = events.concat(queue); // keep them for the next try
+    }
+  }
+
+  function flushOnExit() {
+    if (!queue.length) return;
+    const blob = new Blob([JSON.stringify({ events: takeAll() })], { type: "application/json" });
+    navigator.sendBeacon(url, blob);
+  }
+
+  setInterval(flush, flushEveryMs);
+  // Deferred so the player's own "hidden" event is queued first.
+  document.addEventListener("visibilitychange", () => { if (document.hidden) setTimeout(flushOnExit, 0); });
+  window.addEventListener("pagehide", flushOnExit);
+  return { add, takeAll, flush };
+}
+
+function createSwipePlayer({ phone, video, stage, likeButton, nextButton, caption, progressBar, status, onSwipe, onTick, onEvent }) {
   const WHEEL_THRESHOLD_PX = 60;
   const WHEEL_QUIET_MS = 300;
 
@@ -40,9 +83,23 @@ function createSwipePlayer({ phone, video, stage, likeButton, nextButton, captio
   let loops = 0;
   let liked = false;
   let busy = false;
+  let loadStartedAt = 0;
+  let firstFrameSeen = false;
+  let stallStartedAt = null;
 
   function snapshot() {
     return { clip, watchedS, swipeS: video.currentTime, reachedEnd, liked, loops, time: video.currentTime };
+  }
+
+  function emit(eventType, details = {}) {
+    if (!clip || !onEvent) return;
+    onEvent({
+      event_type: eventType,
+      clip_id: clip.id,
+      video_time: Number.isFinite(video.currentTime) ? Math.round(video.currentTime * 1000) / 1000 : null,
+      client_wall_time: new Date().toISOString(),
+      details,
+    });
   }
 
   function showError(message) {
@@ -62,6 +119,9 @@ function createSwipePlayer({ phone, video, stage, likeButton, nextButton, captio
     reachedEnd = false;
     loops = 0;
     liked = false;
+    firstFrameSeen = false;
+    stallStartedAt = null;
+    loadStartedAt = performance.now();
     likeButton.classList.remove("liked");
     caption.textContent = captionText ?? next.title;
     progressBar.style.width = "0";
@@ -81,9 +141,10 @@ function createSwipePlayer({ phone, video, stage, likeButton, nextButton, captio
     setLoading(false);
   }
 
-  async function swipe() {
+  async function swipe(source) {
     if (!clip || busy) return;
     busy = true;
+    emit("swipe", { source, loops, watched_s: Math.round(watchedS * 1000) / 1000, liked });
     video.pause();
     setLoading(true);
     try {
@@ -97,17 +158,23 @@ function createSwipePlayer({ phone, video, stage, likeButton, nextButton, captio
     }
   }
 
-  function toggleLike() {
+  function toggleLike(source) {
     if (!clip) return;
     liked = !liked;
     likeButton.classList.toggle("liked", liked);
+    emit(liked ? "like" : "unlike", { source });
     onTick?.(snapshot());
   }
 
   function togglePause() {
     if (!clip) return;
-    if (video.paused) video.play();
-    else video.pause();
+    if (video.paused) {
+      video.play();
+      emit("resume");
+    } else {
+      video.pause();
+      emit("pause");
+    }
   }
 
   // --- Playback events ---------------------------------------------------------------
@@ -126,6 +193,7 @@ function createSwipePlayer({ phone, video, stage, likeButton, nextButton, captio
     // Loop like a short-video app, and remember that the end was reached.
     reachedEnd = true;
     loops += 1;
+    emit("loop", { loops });
     lastTime = 0;
     video.currentTime = 0;
     video.play();
@@ -134,6 +202,30 @@ function createSwipePlayer({ phone, video, stage, likeButton, nextButton, captio
   video.addEventListener("playing", () => {
     setLoading(false);
     if (!status.classList.contains("error")) status.textContent = "";
+    if (!firstFrameSeen) {
+      firstFrameSeen = true;
+      emit("first_frame", { load_ms: Math.round(performance.now() - loadStartedAt) });
+    }
+    if (stallStartedAt !== null) {
+      emit("stall_end", { stall_ms: Math.round(performance.now() - stallStartedAt) });
+      stallStartedAt = null;
+    }
+  });
+
+  video.addEventListener("waiting", () => {
+    // Buffering after playback had started (not the initial load).
+    if (firstFrameSeen && stallStartedAt === null && !busy) {
+      stallStartedAt = performance.now();
+      emit("stall");
+    }
+  });
+
+  video.addEventListener("error", () => {
+    emit("error", { code: video.error?.code ?? null, message: video.error?.message ?? "" });
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    emit(document.hidden ? "hidden" : "visible");
   });
 
   // --- Gestures ------------------------------------------------------------------------
@@ -153,14 +245,14 @@ function createSwipePlayer({ phone, video, stage, likeButton, nextButton, captio
     wheelTotal = Math.max(0, wheelTotal + pixels);
     if (wheelTotal >= WHEEL_THRESHOLD_PX) {
       wheelSpent = true;
-      swipe();
+      swipe("wheel");
     }
   }, { passive: false });
 
   let touchStartY = null;
   phone.addEventListener("touchstart", (event) => { touchStartY = event.touches[0].clientY; });
   phone.addEventListener("touchend", (event) => {
-    if (touchStartY !== null && touchStartY - event.changedTouches[0].clientY > 60) swipe();
+    if (touchStartY !== null && touchStartY - event.changedTouches[0].clientY > 60) swipe("touch");
     touchStartY = null;
   });
 
@@ -172,18 +264,18 @@ function createSwipePlayer({ phone, video, stage, likeButton, nextButton, captio
   });
   video.addEventListener("dblclick", () => {
     clearTimeout(clickTimer);
-    if (!liked) toggleLike();
+    if (!liked) toggleLike("double_click");
   });
 
   document.addEventListener("keydown", (event) => {
     if (["INPUT", "TEXTAREA", "SELECT"].includes(event.target.tagName)) return;
-    if (event.key === "ArrowDown") { event.preventDefault(); swipe(); }
-    if (event.key === "l" || event.key === "L") toggleLike();
+    if (event.key === "ArrowDown") { event.preventDefault(); swipe("key"); }
+    if (event.key === "l" || event.key === "L") toggleLike("key");
     if (event.key === " ") { event.preventDefault(); togglePause(); }
   });
 
-  likeButton.addEventListener("click", toggleLike);
-  nextButton.addEventListener("click", swipe);
+  likeButton.addEventListener("click", () => toggleLike("button"));
+  nextButton.addEventListener("click", () => swipe("button"));
 
   return { load, clear, swipe, showError, snapshot, get clip() { return clip; } };
 }

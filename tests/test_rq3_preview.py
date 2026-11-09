@@ -74,3 +74,27 @@ def test_export_downloads_the_participant(client):
 def test_errors_come_back_as_messages(client):
     response = post(client, "begin", {"participant_id": "  "})
     assert response.status_code == 400 and "Participant ID" in response.get_json()["error"]
+
+
+def test_participant_link_resumes_a_known_participant(client):
+    begin(client, "P5")
+    playing = post(client, "next-part").get_json()["clip"]["id"]
+    post(client, "new")
+    arrived = post(client, "arrive", {"participant_id": "P5"}).get_json()
+    assert arrived["stage"] == "watching" and arrived["clip"]["id"] == playing
+
+
+def test_participant_link_for_a_new_id_starts_at_welcome(client):
+    assert post(client, "arrive", {"participant_id": "NEW1"}).get_json()["stage"] == "welcome"
+
+
+def test_event_batches_are_stored(client):
+    begin(client)
+    clip = post(client, "next-part").get_json()["clip"]
+    events = [{"event_type": "first_frame", "clip_id": clip["id"], "details": {"load_ms": 300}}]
+    assert post(client, "events", {"events": events}).get_json()["kept"] == 1
+
+
+def test_events_without_a_participant_are_ignored(client):
+    post(client, "new")
+    assert post(client, "events", {"events": [{"event_type": "pause", "clip_id": "x"}]}).get_json()["kept"] == 0

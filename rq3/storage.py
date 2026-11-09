@@ -87,7 +87,7 @@ CREATE TABLE IF NOT EXISTS rq3_events (
 SCHEMA_STATEMENTS = (PARTICIPANTS_TABLE, BLOCKS_TABLE, IMPRESSIONS_TABLE, EVENTS_TABLE)
 TABLES = ("rq3_events", "rq3_impressions", "rq3_blocks", "rq3_participants")  # children first
 
-# Events the player may send (Part 2, step 2). Anything else is rejected.
+# Events the player may send. Anything else is rejected.
 EVENT_TYPES = frozenset(
     {
         "first_frame",  # real start time; load delay before it is not viewing time
@@ -260,7 +260,21 @@ def record_outcome(db: Connection, impression_id: int, outcome: dict[str, Any]) 
     )
 
 
-# --- Events (Part 2, step 2) ------------------------------------------------------------
+def impression_for_clip(db: Connection, participant_id: str, clip_id: str) -> int | None:
+    """The impression where this participant was shown `clip_id`. Clips never repeat
+    for a participant, so there is at most one."""
+    row = db.execute(
+        """
+        SELECT i.id FROM rq3_impressions AS i
+        JOIN rq3_blocks AS b ON b.id = i.block_id
+        WHERE b.participant_id = %s AND i.clip_id = %s
+        """,
+        (participant_id, clip_id),
+    ).fetchone()
+    return row["id"] if row else None
+
+
+# --- Events ------------------------------------------------------------------------------
 
 
 def record_event(db: Connection, impression_id: int, event: dict[str, Any]) -> None:
@@ -278,6 +292,60 @@ def record_event(db: Connection, impression_id: int, event: dict[str, Any]) -> N
             event.get("video_time"),
             event.get("client_wall_time"),
             utc_now(),
-            json.dumps(event.get("details", {})),
+            json.dumps(event.get("details") or {}),
         ),
     )
+
+
+def events_for(db: Connection, impression_id: int) -> list[dict[str, Any]]:
+    rows = db.execute(
+        """
+        SELECT event_type, video_time, client_wall_time, server_received_at, details_json
+        FROM rq3_events WHERE impression_id = %s ORDER BY id
+        """,
+        (impression_id,),
+    ).fetchall()
+    for row in rows:
+        row["details"] = json.loads(row.pop("details_json") or "{}")
+    return rows
+
+
+# --- Admin -------------------------------------------------------------------------------
+
+
+def list_participants(db: Connection) -> list[dict[str, Any]]:
+    """One summary row per participant, newest first."""
+    return db.execute(
+        """
+        SELECT p.id, p.created_at, p.completed_at, p.feed_order, p.videos_per_part,
+               COUNT(DISTINCT b.id) AS parts_started,
+               COUNT(DISTINCT b.id) FILTER (WHERE b.ended_at IS NOT NULL) AS parts_done,
+               COUNT(i.id) AS videos_shown
+        FROM rq3_participants AS p
+        LEFT JOIN rq3_blocks AS b ON b.participant_id = p.id
+        LEFT JOIN rq3_impressions AS i ON i.block_id = b.id
+        GROUP BY p.id
+        ORDER BY p.created_at DESC
+        """
+    ).fetchall()
+
+
+def delete_participant(db: Connection, participant_id: str) -> bool:
+    """Remove a participant and everything recorded for them. Returns whether they existed.
+    Their feed order is freed, so order balancing counts only remaining participants."""
+    with db.transaction():
+        db.execute(
+            """
+            DELETE FROM rq3_events WHERE impression_id IN (
+                SELECT i.id FROM rq3_impressions AS i JOIN rq3_blocks AS b ON b.id = i.block_id
+                WHERE b.participant_id = %s)
+            """,
+            (participant_id,),
+        )
+        db.execute(
+            "DELETE FROM rq3_impressions WHERE block_id IN (SELECT id FROM rq3_blocks WHERE participant_id = %s)",
+            (participant_id,),
+        )
+        db.execute("DELETE FROM rq3_blocks WHERE participant_id = %s", (participant_id,))
+        deleted = db.execute("DELETE FROM rq3_participants WHERE id = %s", (participant_id,)).rowcount
+    return deleted > 0

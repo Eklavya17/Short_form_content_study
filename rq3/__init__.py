@@ -21,6 +21,7 @@ Module map (see docs/RQ3.md for the full plan):
     storage        Postgres tables and queries for the study
     study          the participant flow, stored in Postgres (no Flask)
     devdb          a local throwaway Postgres for development and tests
+    admin          list, show and delete participants; print participant links
     web            Flask routes for the study flow and the player API
     analysis       per-impression measures and the reported comparisons
 
