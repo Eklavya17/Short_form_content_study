@@ -18,7 +18,8 @@ from random import Random
 
 from rq3.catalog import Clip
 from rq3.config import DEFAULT_CONFIG, FeedConfig
-from rq3.feeds import Decision, Feed, Outcome
+from rq3.feeds import Decision, Feed
+from rq3.scoring import Outcome
 
 
 class ViewerType(str, Enum):

@@ -28,6 +28,7 @@ from random import Random
 
 from rq3.catalog import Clip
 from rq3.config import FeedConfig
+from rq3.scoring import Outcome
 
 
 class Feed(str, Enum):
@@ -41,17 +42,6 @@ class DecisionKind(str, Enum):
     STAY = "stay"
     SWITCH = "switch"
     FORCED_SWITCH = "forced_switch"
-
-
-@dataclass(frozen=True)
-class Outcome:
-    """How the viewer left the video that just played."""
-
-    clip_id: str
-    watched_s: float  # total seconds watched, loops included, pauses excluded
-    swipe_s: float  # video time when they swiped
-    reached_end: bool  # watched to the end at least once
-    liked: bool
 
 
 @dataclass(frozen=True)

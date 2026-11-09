@@ -41,14 +41,16 @@ def test_settled_decisions():
     assert config.engagement_step == 0.3
     assert config.cooldown == 3
     assert config.micro_payoff_window_s == 1.0
-    assert list(config.story_adjustment) == [
-        "hook",
-        "setup",
-        "development",
-        "buildup",
-        "after_payoff",
-    ]
-    assert config.loop_adjustment["after_micro_payoff"] == 0.1
+    assert dict(config.stage_adjustment) == {
+        "hook": -0.4,
+        "setup": -0.3,
+        "development": -0.2,
+        "buildup": -0.1,
+        "after_payoff": 0.2,
+    }
+    assert config.mid_loop_adjustment == -0.2
+    assert config.after_micro_payoff_adjustment == 0.1
+    assert config.payoff_grace_s == 0.0
 
 
 def test_structure_values_match_catalog_labels():

@@ -56,7 +56,7 @@ database code, so the simulator and the server run the same logic.
 | --- | --- | --- |
 | 1 | **Done.** Parse topic, duration, structure, stage, loop and payoff times for all 44 clips; list clips to mark by hand | `rq3/build_catalog.py`, `rq3/catalog.py`, `rq3/media.py` |
 | 2 | Similarity placeholder: same topic = similar, until VCA vectors exist | `rq3/feeds.py` (`_pick_clip`) |
-| 3 | Swipe adjustment g for story, loop and hybrid clips | `rq3/scoring.py` |
+| 3 | **Done.** Swipe adjustment g for story, loop and hybrid clips (rule order below) | `rq3/scoring.py` |
 | 4 | Feed A: cooldown of 3 | `rq3/feeds.py` |
 | 5 | Feeds B and C: update p, clip, reset, run cap | `rq3/feeds.py` |
 | 6 | Topic choice on a switch: softmax over topic scores | `rq3/feeds.py` |
@@ -102,6 +102,28 @@ that needs a person to check it. Sources, in order:
 To fix a clip: watch it, edit or add its entry in the fixes file, set
 `"confirmed": true`, and rebuild. Entries pre-filled by a script are best guesses
 and stay on the review list until confirmed.
+
+## Scoring a swipe
+
+`rq3.scoring.score_outcome` returns e = (w − w̄) + g for the video that just ended:
+w is the fraction watched (capped at 1), w̄ the viewer's average in this block
+(0.5 for the first 3 videos), and g comes from the first rule that matches:
+
+| # | Where they swiped | g |
+| --- | --- | --- |
+| 1 | The video played to its end at least once | +0.2 |
+| 2 | During the hook | −0.4 |
+| 3 | After the primary payoff started (`payoff_grace_s`, default 0) | +0.2 |
+| 4 | Within 1 s after a loop's micro-payoff (`micro_payoff_window_s`) | +0.1 |
+| 5 | Inside an annotated buildup / setup / development span | −0.1 / −0.3 / −0.2 |
+| 6 | In the middle of a loop | −0.2 |
+| 7 | In a gap of at most 2 s after a stage: as that stage | |
+| 8 | Nothing annotated at that time | −0.2 |
+
+Annotated stages come before loops because Pause Times often starts loop 1 at
+0:00, over the hook and setup. All values are in `rq3/config.py`. Likes are not
+part of e; the feed engine applies them. `classify_swipe` returns which rule
+matched, which the analysis reuses as the swipe stage.
 
 ## Conventions
 

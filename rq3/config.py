@@ -24,8 +24,9 @@ class FeedConfig:
     default_average_watch: float = 0.5
     warmup_videos: int = 3
 
-    # g for story videos, by the codebook stage the viewer swiped in.
-    story_adjustment: Mapping[str, float] = field(
+    # g by the codebook stage the viewer swiped in. Used for every structure:
+    # loop clips have hooks, setups and (hybrids) buildups and payoffs too.
+    stage_adjustment: Mapping[str, float] = field(
         default_factory=lambda: _frozen(
             {
                 "hook": -0.4,
@@ -37,20 +38,18 @@ class FeedConfig:
         )
     )
 
-    # g for loop videos (and the loop part of hybrid videos).
-    loop_adjustment: Mapping[str, float] = field(
-        default_factory=lambda: _frozen(
-            {
-                "hook": -0.4,
-                "mid_loop": -0.2,
-                "after_micro_payoff": 0.1,
-                "after_final_payoff": 0.2,  # also used when the video ended
-            }
-        )
-    )
-
+    # g inside the loops of loop and hybrid clips.
+    mid_loop_adjustment: float = -0.2
+    after_micro_payoff_adjustment: float = 0.1
     # A swipe this soon after a loop's micro-payoff counts as "left satisfied".
     micro_payoff_window_s: float = 1.0
+
+    # The primary payoff counts as seen this long after it starts (0 = at its start).
+    payoff_grace_s: float = 0.0
+    # A swipe in a gap this short between annotated stages counts as the stage
+    # before it; in a longer gap, or where nothing is annotated, it is unannotated.
+    max_filled_gap_s: float = 2.0
+    unannotated_adjustment: float = -0.2
 
     # --- Stay probability p (feeds B and C) ------------------------------------
     initial_stay_probability: float = 0.6  # also the value p resets to on a switch
