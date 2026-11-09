@@ -34,7 +34,13 @@ def swipe(client, clip, fraction=0.5, liked=False):
 
 
 def test_page_loads(client):
-    assert b"RQ3 feed demo" in client.get("/").data
+    assert b"RQ3 feed demo" in client.get("/", base_url="http://127.0.0.1:5001").data
+
+
+def test_localhost_is_redirected_to_127_0_0_1(client):
+    response = client.get("/", base_url="http://localhost:5001")
+    assert response.status_code == 302
+    assert response.headers["Location"].startswith("http://127.0.0.1:5001")
 
 
 def test_start_returns_a_clip_and_its_rule_timeline(client):

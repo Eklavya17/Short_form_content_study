@@ -17,15 +17,33 @@ let busy = false;
 
 // --- Server calls -------------------------------------------------------------------
 
+const SERVER_DOWN = "Can't reach the demo server. Start it with `python -m rq3.demo`, then reload this page.";
+
 async function api(url, body) {
-  const response = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body ?? {}),
-  });
-  const data = await response.json();
+  let response;
+  try {
+    response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body ?? {}),
+    });
+  } catch {
+    throw new Error(SERVER_DOWN);
+  }
+  const data = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(data.error || `Request failed: ${response.status}`);
+  showError("");
   return data;
+}
+
+function showError(message) {
+  status.textContent = message;
+  status.classList.toggle("error", Boolean(message));
+}
+
+function setLoading(on) {
+  $("#phone").classList.toggle("loading", on);
+  if (on) status.textContent = "Loading next video…";
 }
 
 function chosenFeed() {
@@ -46,7 +64,7 @@ async function startBlock() {
     $("#start-overlay").hidden = true;
     render(data);
   } catch (error) {
-    status.textContent = error.message;
+    showError(error.message);
   }
 }
 
@@ -54,6 +72,7 @@ async function swipe() {
   if (!clip || busy) return;
   busy = true;
   player.pause();
+  setLoading(true);
   try {
     const data = await api("/api/swipe", {
       watched_s: watchedS,
@@ -63,14 +82,21 @@ async function swipe() {
     });
     render(data);
   } catch (error) {
-    status.textContent = error.message;
+    setLoading(false);
+    showError(error.message);
   } finally {
     busy = false;
   }
 }
 
 async function resetSession() {
-  const data = await api("/api/reset");
+  let data;
+  try {
+    data = await api("/api/reset");
+  } catch (error) {
+    showError(error.message);
+    return;
+  }
   clip = null;
   player.removeAttribute("src");
   player.load();
@@ -121,7 +147,8 @@ player.addEventListener("ended", () => {
 });
 
 player.addEventListener("playing", () => {
-  status.textContent = "";
+  setLoading(false);
+  if (!status.classList.contains("error")) status.textContent = "";
 });
 
 function toggleLike() {
@@ -139,13 +166,26 @@ function togglePause() {
 
 // --- Gestures -----------------------------------------------------------------------
 
-let wheelLock = false;
-$("#phone").addEventListener("wheel", (event) => {
+// One scroll gesture = one swipe. A mouse notch, a trackpad flick and smooth
+// scrolling all arrive as a stream of wheel events, so add them up, swipe once
+// the total passes a threshold, then ignore the rest of the gesture until the
+// wheel has been quiet for a moment. Scrolling up does nothing (no going back).
+const WHEEL_THRESHOLD_PX = 60;
+const WHEEL_QUIET_MS = 300;
+let wheelTotal = 0;
+let wheelSpent = false;
+let wheelQuietTimer = null;
+
+$(".stage").addEventListener("wheel", (event) => {
   event.preventDefault();
-  if (event.deltaY > 30 && !wheelLock) {
-    wheelLock = true;
+  const pixels = event.deltaMode === 1 ? event.deltaY * 16 : event.deltaMode === 2 ? event.deltaY * 800 : event.deltaY;
+  clearTimeout(wheelQuietTimer);
+  wheelQuietTimer = setTimeout(() => { wheelTotal = 0; wheelSpent = false; }, WHEEL_QUIET_MS);
+  if (wheelSpent) return;
+  wheelTotal = Math.max(0, wheelTotal + pixels);
+  if (wheelTotal >= WHEEL_THRESHOLD_PX) {
+    wheelSpent = true;
     swipe();
-    setTimeout(() => { wheelLock = false; }, 700);
   }
 }, { passive: false });
 

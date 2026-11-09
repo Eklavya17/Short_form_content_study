@@ -188,7 +188,10 @@ All three checks pass once the pool reaches about 11 clips per topic.
 .venv\Scripts\python.exe -m rq3.demo
 ```
 
-Then open http://127.0.0.1:5001. Pick feed A, B or C, set topic interest, press
+Then open http://127.0.0.1:5001 (not `localhost`, which adds ~0.3 s per request on
+Windows; the page redirects there anyway). Scroll down on the video, press ↓, or
+click ↓ to move on; one scroll gesture is one swipe, and scrolling up does nothing.
+Pick feed A, B or C, set topic interest, press
 **Start block**, and scroll. The debug panel shows, for every swipe: the scoring
 rule that would match right now, how the last swipe was scored (w, w̄, g, e), why
 the next video was picked (p, the draw, stay/switch/forced, topic odds or feed A's
