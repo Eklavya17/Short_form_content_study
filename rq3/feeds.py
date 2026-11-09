@@ -232,19 +232,30 @@ def _forced_switch_reason(state: FeedState) -> str | None:
     return None
 
 
-def _pick_topic_by_cooldown(state: FeedState, rng: Random) -> str:
-    """Feed A: a random topic whose counter is 0, else one with the lowest counter."""
+def cooldown_candidates(state: FeedState) -> list[str]:
+    """Feed A's choices: topics with unseen clips whose counter is 0 (else the lowest)."""
     available = _topics_with_unseen(state)
     lowest = min(state.cooldowns[t] for t in available)
-    return rng.choice([t for t in available if state.cooldowns[t] == lowest])
+    return [t for t in available if state.cooldowns[t] == lowest]
+
+
+def topic_odds(state: FeedState, exclude: str | None) -> dict[str, float]:
+    """Feeds B and C: each topic's chance of being picked on a switch (softmax over
+    topic scores), never the topic being left unless it is the only one with clips."""
+    available = [t for t in _topics_with_unseen(state) if t != exclude] or _topics_with_unseen(state)
+    temperature = state.config.topic_temperature
+    weights = {t: math.exp(state.topic_scores[t] / temperature) for t in available}
+    total = sum(weights.values())
+    return {t: w / total for t, w in weights.items()}
+
+
+def _pick_topic_by_cooldown(state: FeedState, rng: Random) -> str:
+    return rng.choice(cooldown_candidates(state))
 
 
 def _pick_topic_by_score(state: FeedState, rng: Random, exclude: str | None) -> str:
-    """Feeds B and C: softmax over topic scores, never the topic being left."""
-    available = [t for t in _topics_with_unseen(state) if t != exclude] or _topics_with_unseen(state)
-    temperature = state.config.topic_temperature
-    weights = [math.exp(state.topic_scores[t] / temperature) for t in available]
-    return rng.choices(available, weights=weights)[0]
+    odds = topic_odds(state, exclude)
+    return rng.choices(list(odds), weights=list(odds.values()))[0]
 
 
 def _topics_with_unseen(state: FeedState) -> list[str]:

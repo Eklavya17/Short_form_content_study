@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RQ3 Feed Demo</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='rq3/demo.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <strong>RQ3 feed demo</strong>
+    <span class="muted">Testing only. Swipe: scroll down, ↓ key, swipe up, or Next. Like: ♥, double-click, or L. Pause: click or Space.</span>
+    <button id="toggle-panel" type="button">Hide panel</button>
+  </header>
+
+  <main class="layout">
+    <section class="stage">
+      <div class="phone" id="phone">
+        <video id="player" playsinline preload="auto"></video>
+        <div class="overlay" id="start-overlay">
+          <p>Choose a feed in the panel and press <b>Start block</b>.</p>
+        </div>
+        <div class="caption" id="caption"></div>
+        <div class="actions">
+          <button id="like-button" type="button" aria-label="Like">♥</button>
+          <button id="next-button" type="button" aria-label="Next video">↓</button>
+        </div>
+        <div class="progress"><div id="progress-bar"></div></div>
+      </div>
+      <p class="status" id="status"></p>
+    </section>
+
+    <aside class="panel" id="panel">
+      <section class="card">
+        <h2>Block setup</h2>
+        <div class="feed-picker" role="radiogroup" aria-label="Feed">
+          <label><input type="radio" name="feed" value="A" checked> A · random, cooldown</label>
+          <label><input type="radio" name="feed" value="B"> B · more of the same</label>
+          <label><input type="radio" name="feed" value="C"> C · move on</label>
+        </div>
+        <details>
+          <summary>Topic interest (1–5)</summary>
+          <div class="sliders">
+            {% for topic in topics %}
+            <label>
+              <span>{{ topic }}</span>
+              <input type="range" min="1" max="5" value="3" data-topic="{{ topic }}">
+              <output>3</output>
+            </label>
+            {% endfor %}
+          </div>
+        </details>
+        <div class="row">
+          <button id="start-button" type="button" class="primary">Start block</button>
+          <button id="reset-button" type="button">Reset (forget seen clips)</button>
+          <a href="/api/export" class="button">Download JSON</a>
+        </div>
+        <p class="muted" id="pool-info"></p>
+      </section>
+
+      <section class="card">
+        <h2>1 · Now playing</h2>
+        <div id="now-playing" class="muted">Nothing yet.</div>
+        <div class="timeline" id="timeline"></div>
+        <div id="live-rule" class="live-rule"></div>
+      </section>
+
+      <section class="card">
+        <h2>2 · Last swipe: how it was scored</h2>
+        <div id="scored" class="muted">No swipe yet.</div>
+      </section>
+
+      <section class="card">
+        <h2>3 · Last decision: why this video</h2>
+        <div id="decision" class="muted">No decision yet.</div>
+      </section>
+
+      <section class="card">
+        <h2>4 · Topic scores</h2>
+        <div id="topic-scores" class="bars"></div>
+      </section>
+
+      <section class="card">
+        <h2>5 · Block history</h2>
+        <div id="summary" class="muted"></div>
+        <div class="table-wrap">
+          <table id="history">
+            <thead><tr><th>#</th><th>Topic</th><th>Decision</th><th>Run</th><th>p</th><th>Draw</th><th>Prev. rule</th><th>Prev. e</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+    </aside>
+  </main>
+
+  <script>window.RQ3 = {{ {"cooldown": config.cooldown, "runCap": config.max_run_length} | tojson }};</script>
+  <script src="{{ url_for('static', filename='rq3/demo.js') }}"></script>
+</body>
+</html>
