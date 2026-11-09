@@ -1,0 +1,31 @@
+# Render Blueprint for the RQ3 study: one web service and its own Postgres database,
+# both separate from the RQ1 pilot. In Render: New -> Blueprint, pick this repository
+# and the rq3 branch, then Apply. See docs/RQ3.md, "Hosting on Render".
+
+services:
+  - type: web
+    name: rq3-short-video-study
+    runtime: python
+    branch: rq3
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    # One worker keeps the debug demo's in-memory state in one place; threads handle
+    # concurrent participants. The participant flow itself is stored in Postgres.
+    startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 8 --timeout 60 rq3.wsgi:app
+    healthCheckPath: /healthz
+    autoDeploy: true # redeploys on every push to rq3
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      - key: RQ3_DATABASE_URL
+        fromDatabase:
+          name: rq3-study-db
+          property: connectionString
+      - key: RQ3_SECRET_KEY
+        generateValue: true
+
+databases:
+  - name: rq3-study-db
+    plan: free
+    databaseName: rq3_study
+    user: rq3_study_user

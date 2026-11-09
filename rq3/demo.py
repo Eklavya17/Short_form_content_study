@@ -1,12 +1,14 @@
-"""Local demo of the RQ3 feeds, with a debug panel. For testing only, not the study.
+"""The RQ3 web app: the debug demo at / and the participant preview at /participant.
 
-Run:
+Run locally:
     python -m rq3.demo            then open http://127.0.0.1:5001
                                   (participant preview: http://127.0.0.1:5001/participant)
     python -m rq3.demo --host 0.0.0.0 --port 8000   (e.g. on a course VM)
+Hosted (Render): gunicorn serves rq3.wsgi:app, which uses this same app.
 
-It runs the real engine (rq3.feeds, rq3.scoring) on the real catalog. Each browser
-gets its own in-memory session: no database, nothing is saved when it stops.
+The debug demo runs the real engine (rq3.feeds, rq3.scoring) on the real catalog,
+keeping each browser's state in memory. The participant preview stores everything
+in Postgres (rq3.study).
 """
 
 from __future__ import annotations
@@ -54,7 +56,9 @@ TOPICS = sorted({clip.topic for clip in CLIPS})
 TIMELINE_STEP_S = 0.25
 
 app = Flask(__name__, template_folder=str(ROOT / "templates"), static_folder=str(ROOT / "static"))
-app.config["SECRET_KEY"] = os.environ.get("RQ3_DEMO_SECRET", secrets.token_hex(16))
+# Signs the session cookie that remembers a browser's participant. Set it on the
+# host so sessions survive restarts; locally a random one is fine.
+app.config["SECRET_KEY"] = os.environ.get("RQ3_SECRET_KEY") or secrets.token_hex(16)
 app.register_blueprint(preview)
 
 
@@ -202,6 +206,16 @@ def response_for(demo: DemoSession, decision: Decision, explanation: dict, score
 
 
 # --- Routes -------------------------------------------------------------------------------
+
+
+@app.get("/healthz")
+def health():
+    """For the host's health check: the app is up and, if configured, the database answers."""
+    url = app.config.get("RQ3_DATABASE_URL")
+    if url:
+        with storage.connect(url) as connection:
+            connection.execute("SELECT 1")
+    return jsonify({"ok": True, "clips": len(CLIPS), "database": bool(url)})
 
 
 @app.get("/")

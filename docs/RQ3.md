@@ -36,6 +36,7 @@ short-video-user-study/
 │   ├── study.py                  the participant flow on top of storage (no Flask)
 │   ├── devdb.py                  local throwaway Postgres for development and tests
 │   ├── admin.py                  list, show, delete participants; print participant links
+│   ├── wsgi.py                   production entry point (gunicorn on Render)
 │   ├── demo.py                   local demo of the feeds with a debug panel (testing only)
 │   ├── preview.py                participant preview at /participant (testing only)
 │   ├── web.py                    Flask blueprint: study pages and player API
@@ -52,7 +53,8 @@ short-video-user-study/
 ├── tests/test_rq3_scaffold.py    new; per-rule tests are added as steps land
 ├── docs/RQ3.md                   new: this file
 ├── pyproject.toml                new: pytest settings
-└── requirements-dev.txt          new: pytest
+├── render.yaml                   new: Render Blueprint (web service + its own Postgres)
+└── requirements-dev.txt          new: pytest, local Postgres for tests
 ```
 
 The engine (`config`, `catalog`, `scoring`, `feeds`, `simulation`) imports no Flask or
@@ -341,6 +343,62 @@ events; their link then starts from the beginning and their feed order is freed
 for balancing. The commands use `RQ3_DATABASE_URL` when set, so with the Render
 database's external URL they manage the hosted study; otherwise the local one.
 The demo server can stay running while you use them.
+
+## Hosting on Render
+
+Like the RQ1 pilot, RQ3 runs on Render with gunicorn and a Render Postgres, but as
+its **own** web service and database, deployed from the `rq3` branch. RQ1 is not
+touched. `render.yaml` describes both, so setup is mostly clicks.
+
+**One-time setup (Blueprint):**
+
+1. Sign in at https://dashboard.render.com and connect your GitHub account if
+   asked, with access to `Eklavya17/Short_form_content_study`.
+2. **New → Blueprint**, pick that repository, branch **`rq3`**.
+3. Render reads `render.yaml` and proposes two resources: the web service
+   `rq3-short-video-study` and the database `rq3-study-db`. Click **Apply**.
+4. Wait for the first build (a few minutes). The service's page shows its address,
+   e.g. `https://rq3-short-video-study.onrender.com` (Render adds a suffix if the
+   name is taken).
+5. Check `https://<your-app>.onrender.com/healthz` returns `{"ok": true, ...}`.
+
+`RQ3_DATABASE_URL` is wired to the new database and `RQ3_SECRET_KEY` is generated
+by Render: neither is ever in the repo. Every push to `rq3` redeploys.
+
+**Manual alternative** (how RQ1 was set up): create a PostgreSQL database, then a
+Web Service from the repo with branch `rq3`, build command
+`pip install -r requirements.txt`, start command
+`gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 8 --timeout 60 rq3.wsgi:app`,
+and environment variables `RQ3_DATABASE_URL` (the database's **Internal** URL),
+`RQ3_SECRET_KEY` (any long random string) and `PYTHON_VERSION=3.12.7`.
+
+**Testing on the hosted app:**
+
+| Page | Address |
+| --- | --- |
+| Participant link | `https://<your-app>.onrender.com/participant?pid=P001` |
+| Debug demo | `https://<your-app>.onrender.com/` |
+| Health check | `https://<your-app>.onrender.com/healthz` |
+
+```bash
+.venv\Scripts\python.exe -m rq3.admin links P001 P002 --base https://<your-app>.onrender.com
+```
+
+To list or delete hosted participants from your computer, copy the database's
+**External** URL from its Render page and run the admin commands with it:
+
+```powershell
+$env:RQ3_DATABASE_URL = "<External Database URL>"
+.venv\Scripts\python.exe -m rq3.admin list
+```
+
+Close that terminal afterwards so the URL does not linger.
+
+**Free plan limits.** A free web service sleeps after about 15 minutes without
+visits, and the next visit takes up to a minute to wake it, so open the link
+yourself shortly before a session. Render's free Postgres databases expire after a
+limited period (check the database's page for its date); download participants'
+data before then or switch the database to a paid plan for the real pilot.
 
 ## Conventions
 
