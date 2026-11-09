@@ -9,13 +9,13 @@ Usage, the same in the simulator and the server:
 
 The three feeds share everything except two rules:
 
-    feed  stay on the topic?        p after each video                 topic on a switch
-    A     never                     (no p)                             random, cooldown 0
-    B     random draw against p     p + step * e + like_step * like    by topic score
-    C     random draw against p     p - step * |e| - like_step * like  by topic score
+    feed  stay on the topic?     p at a run's start   p after each video                 topic on a switch
+    A     never                  (no p)               (no p)                             random, cooldown 0
+    B     random draw against p  0.75                 p + step * e + like_step * like    by topic score
+    C     random draw against p  0.45                 p - step * |e| - like_step * like  by topic score
 
 e is the engagement score from rq3.scoring. In B and C, p is clipped to
-[min, max] and reset after every switch. A switch is forced when a run reaches
+[min, max] and reset to the feed's starting value after every switch. A switch is forced when a run reaches
 max_run_length or the topic has no unseen clips left. Topic scores start from
 the interest survey and move with engagement and likes in every feed; only B
 and C use them. Every Decision records p, the random draw and a state snapshot,
@@ -76,7 +76,7 @@ class FeedState:
     clips: dict[str, Clip]  # the whole pool, by id
     topic_scores: dict[str, float]
     cooldowns: dict[str, int]
-    stay_probability: float
+    stay_probability: float | None  # None for feed A, which has no p
     current_clip_id: str | None = None
     run_length: int = 0
     seen: set[str] = field(default_factory=set)  # includes clips from earlier blocks
@@ -120,6 +120,15 @@ def restore_state(snapshot: dict[str, Any], clips: list[Clip], config: FeedConfi
     )
 
 
+def initial_stay_probability(feed: Feed, config: FeedConfig) -> float | None:
+    """p at the start of each run: B leans toward staying, C toward switching."""
+    return {
+        Feed.A: None,
+        Feed.B: config.b_initial_stay_probability,
+        Feed.C: config.c_initial_stay_probability,
+    }[feed]
+
+
 def interest_to_score(rating: int) -> float:
     """Map a 1-5 interest rating onto the -1..1 topic-score scale (3 -> 0)."""
     if not 1 <= rating <= 5:
@@ -146,7 +155,7 @@ def new_state(
         clips={clip.id: clip for clip in clips},
         topic_scores={t: interest_to_score(interest_ratings.get(t, 3)) for t in topics},
         cooldowns={t: 0 for t in topics},
-        stay_probability=config.initial_stay_probability,
+        stay_probability=initial_stay_probability(feed, config),
         seen=set(seen or ()),
     )
 
@@ -186,7 +195,7 @@ def choose_next(state: FeedState, outcome: Outcome, rng: Random) -> Decision:
     else:
         kind = DecisionKind.FORCED_SWITCH if forced_reason else DecisionKind.SWITCH
         topic = _pick_topic_by_score(state, rng, exclude=clip.topic)
-        state.stay_probability = state.config.initial_stay_probability
+        state.stay_probability = initial_stay_probability(state.feed, state.config)
     return _play(
         state, topic, kind, rng,
         snapshot=snapshot, engagement=engagement, p=p, draw=draw, forced_reason=forced_reason,

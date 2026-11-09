@@ -2,7 +2,7 @@
 
 Usage:
     python -m rq3.simulation                      # defaults from rq3.config
-    python -m rq3.simulation --step 0.45 --videos-per-block 10 --pool-copies 2
+    python -m rq3.simulation --b-start 0.6 --c-start 0.6 --pool-copies 2
 
 Each simulated participant rates every topic, then scrolls three blocks (A, B and
 C in a random order) drawn from one shared pool, so no clip repeats, exactly as
@@ -207,7 +207,8 @@ def main() -> None:
     parser.add_argument("--videos-per-block", type=int, default=DEFAULT_CONFIG.videos_per_block)
     parser.add_argument("--step", type=float, default=DEFAULT_CONFIG.engagement_step, help="B/C engagement step")
     parser.add_argument("--like-step", type=float, default=DEFAULT_CONFIG.like_step)
-    parser.add_argument("--reset", type=float, default=DEFAULT_CONFIG.initial_stay_probability, help="p after a switch")
+    parser.add_argument("--b-start", type=float, default=DEFAULT_CONFIG.b_initial_stay_probability, help="B's p at a run's start")
+    parser.add_argument("--c-start", type=float, default=DEFAULT_CONFIG.c_initial_stay_probability, help="C's p at a run's start")
     parser.add_argument("--pool-copies", type=int, default=1, help="pretend each clip exists N times")
     parser.add_argument("--run-effect", type=float, default=0.1, help="programmed tiring/momentum per video")
     parser.add_argument("--seed", type=int, default=1)
@@ -218,13 +219,14 @@ def main() -> None:
         videos_per_block=args.videos_per_block,
         engagement_step=args.step,
         like_step=args.like_step,
-        initial_stay_probability=args.reset,
+        b_initial_stay_probability=args.b_start,
+        c_initial_stay_probability=args.c_start,
     )
     clips = enlarge_pool(load_catalog(), args.pool_copies)
     print(
         f"{args.participants} participants x 3 blocks of {config.videos_per_block}, "
         f"{len(clips)} clips, step {config.engagement_step}, like step {config.like_step}, "
-        f"reset p {config.initial_stay_probability}\n"
+        f"starting p B {config.b_initial_stay_probability} / C {config.c_initial_stay_probability}\n"
     )
     results = {
         kind: simulate(SimulatedViewer(kind, run_effect=args.run_effect), clips, config, args.participants, args.seed)

@@ -51,6 +51,7 @@ def test_settled_decisions():
     assert config.mid_loop_adjustment == -0.2
     assert config.after_micro_payoff_adjustment == 0.1
     assert config.payoff_grace_s == 0.0
+    assert (config.b_initial_stay_probability, config.c_initial_stay_probability) == (0.75, 0.45)
 
 
 def test_structure_values_match_catalog_labels():

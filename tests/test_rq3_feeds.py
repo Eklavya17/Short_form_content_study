@@ -103,19 +103,27 @@ def p_after_first_video(feed: Feed, outcome_for) -> float:
 
 
 def test_full_watch_raises_p_in_b_and_lowers_it_in_c():
-    # e = (1.0 - 0.5) + 0.2 = 0.7; step 0.3 moves p by 0.21 from 0.6.
-    assert p_after_first_video(Feed.B, watched_all) == pytest.approx(0.81)
-    assert p_after_first_video(Feed.C, watched_all) == pytest.approx(0.39)
+    # e = (1.0 - 0.5) + 0.2 = 0.7; step 0.3 moves p by 0.21 from B's 0.75 and C's 0.45.
+    assert p_after_first_video(Feed.B, watched_all) == pytest.approx(0.9)  # 0.96, capped
+    assert p_after_first_video(Feed.C, watched_all) == pytest.approx(0.24)
 
 
 def test_a_like_pushes_p_to_the_bounds():
-    assert p_after_first_video(Feed.B, liked_it) == pytest.approx(0.9)  # 0.6 + 0.21 + 0.25, capped
-    assert p_after_first_video(Feed.C, liked_it) == pytest.approx(0.15)  # 0.6 - 0.21 - 0.25, floored
+    assert p_after_first_video(Feed.B, liked_it) == pytest.approx(0.9)  # 0.75 + 0.21 + 0.25, capped
+    assert p_after_first_video(Feed.C, liked_it) == pytest.approx(0.15)  # 0.45 - 0.21 - 0.25, floored
 
 
-def test_an_early_swipe_moves_b_and_c_the_same_way():
-    assert p_after_first_video(Feed.B, swiped_in_hook) == pytest.approx(p_after_first_video(Feed.C, swiped_in_hook))
-    assert p_after_first_video(Feed.B, swiped_in_hook) < 0.6
+def test_b_and_c_start_runs_from_their_own_p():
+    assert new_state(Feed.A, make_pool(), {}, DEFAULT_CONFIG).stay_probability is None
+    assert new_state(Feed.B, make_pool(), {}, DEFAULT_CONFIG).stay_probability == 0.75
+    assert new_state(Feed.C, make_pool(), {}, DEFAULT_CONFIG).stay_probability == 0.45
+
+
+def test_an_early_swipe_lowers_b_and_c_by_the_same_amount():
+    drop_b = DEFAULT_CONFIG.b_initial_stay_probability - p_after_first_video(Feed.B, swiped_in_hook)
+    drop_c = DEFAULT_CONFIG.c_initial_stay_probability - p_after_first_video(Feed.C, swiped_in_hook)
+    assert drop_b == pytest.approx(drop_c)
+    assert drop_b > 0
 
 
 def test_draw_below_p_stays_and_above_p_switches_and_resets():
@@ -127,7 +135,7 @@ def test_draw_below_p_stays_and_above_p_switches_and_resets():
         assert decision.kind is expected
         assert (decision.topic == first.topic) == (expected is DecisionKind.STAY)
         if expected is DecisionKind.SWITCH:
-            assert state.stay_probability == DEFAULT_CONFIG.initial_stay_probability
+            assert state.stay_probability == DEFAULT_CONFIG.b_initial_stay_probability
 
 
 # --- Forced switches and the pool ------------------------------------------------------

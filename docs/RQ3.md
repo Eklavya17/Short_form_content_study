@@ -129,11 +129,14 @@ matched, which the analysis reuses as the swipe stage.
 
 All three feeds live in `rq3/feeds.py` and share everything except two rules:
 
-| Feed | Stay on the topic? | p after each video | Topic on a switch |
-| --- | --- | --- | --- |
-| A | Never | (no p) | Random among topics with cooldown 0 |
-| B | Random draw against p | p + 0.3·e + 0.25·like | Softmax over topic scores |
-| C | Random draw against p | p − 0.3·\|e\| − 0.25·like | Softmax over topic scores |
+| Feed | Stay on the topic? | p at a run's start | p after each video | Topic on a switch |
+| --- | --- | --- | --- | --- |
+| A | Never | (no p) | (no p) | Random among topics with cooldown 0 |
+| B | Random draw against p | 0.75 | p + 0.3·e + 0.25·like | Softmax over topic scores |
+| C | Random draw against p | 0.45 | p − 0.3·\|e\| − 0.25·like | Softmax over topic scores |
+
+p is kept between 0.15 and 0.9 and goes back to the feed's starting value after
+every switch. The different starts were adopted from the simulator results below.
 
 `new_state` starts a block (passing clips seen in earlier blocks), `first_video`
 opens it, and `choose_next` takes the viewer's `Outcome` and returns a `Decision`
@@ -146,10 +149,10 @@ the last clip" once VCA similarity exists.
 
 `python -m rq3.simulation` runs 1,000 simulated participants through A, B and C
 (random order, one shared pool, no repeats) for each viewer type, and prints the
-three checks. Flags: `--step`, `--like-step`, `--reset`, `--videos-per-block`,
+three checks. Flags: `--step`, `--like-step`, `--b-start`, `--c-start`, `--videos-per-block`,
 `--pool-copies N` (pretend each clip exists N times), `--run-effect`.
 
-With the current 44 clips and settings (blocks of 12, step 0.3, reset 0.6):
+First run, with the 44 clips and a shared starting p (blocks of 12, step 0.3, both start at 0.6):
 
 | Check | Result | |
 | --- | --- | --- |
@@ -164,7 +167,17 @@ With the current 44 clips and settings (blocks of 12, step 0.3, reset 0.6):
   often as it rises.
 - **Different starting p per feed closes it:** B resets to 0.75 and C to 0.45 on
   ~11 clips per topic gives a gap of +1.06, 4% forced, tiring still recovered.
-  Letting B ignore below-average videos gives +0.76. Neither is adopted yet.
+  Letting B ignore below-average videos gives +0.76.
+
+**Adopted: B starts at 0.75, C at 0.45.** Re-run with blocks of 12:
+
+| Check | 44 clips | ~88 clips (`--pool-copies 2`) |
+| --- | --- | --- |
+| 1. B's runs at least 1 video longer than C's | +0.73, fail | +1.07, pass |
+| 2. Recovers programmed tiring of -0.10 | -0.08, pass | -0.09, pass |
+| 3. Under 5% of switches forced by an empty topic | 39%, fail | 4.7%, pass |
+
+All three checks pass once the pool reaches about 11 clips per topic.
 
 ## Conventions
 

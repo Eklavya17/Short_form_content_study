@@ -52,7 +52,11 @@ class FeedConfig:
     unannotated_adjustment: float = -0.2
 
     # --- Stay probability p (feeds B and C) ------------------------------------
-    initial_stay_probability: float = 0.6  # also the value p resets to on a switch
+    # p at the start of every same-topic run (the value it resets to on a switch).
+    # B leans toward staying and C toward switching; with a shared 0.6 the
+    # simulator found B's runs only ~0.4 videos longer than C's, with these ~1.
+    b_initial_stay_probability: float = 0.75
+    c_initial_stay_probability: float = 0.45
     min_stay_probability: float = 0.15
     max_stay_probability: float = 0.9
     engagement_step: float = 0.3  # how far one video's score moves p
