@@ -62,7 +62,7 @@ database code, so the simulator and the server run the same logic.
 | 6 | **Done.** Topic choice on a switch: softmax over topic scores | `rq3/feeds.py` |
 | 7 | **Done.** Forced switches: run cap or topic exhausted | `rq3/feeds.py` |
 | 8 | **Done.** Decision record: p, draw, kind, state snapshot | `rq3/feeds.py` |
-| 9 | Simulator and its three checks; pick block length | `rq3/simulation.py` |
+| 9 | **Built.** Simulator and its three checks; pick block length | `rq3/simulation.py` |
 | 10 | Tests for every rule | `tests/` |
 
 ### Part 2: run the study and measure swipes
@@ -141,6 +141,30 @@ with p, the draw, stay / switch / forced switch, and a JSON-safe state snapshot.
 `FeedState.snapshot()` and `restore_state()` save and reload the state between
 requests. Within a topic the clip is random for now; it becomes "most similar to
 the last clip" once VCA similarity exists.
+
+## Simulator results (Nov 2026)
+
+`python -m rq3.simulation` runs 1,000 simulated participants through A, B and C
+(random order, one shared pool, no repeats) for each viewer type, and prints the
+three checks. Flags: `--step`, `--like-step`, `--reset`, `--videos-per-block`,
+`--pool-copies N` (pretend each clip exists N times), `--run-effect`.
+
+With the current 44 clips and settings (blocks of 12, step 0.3, reset 0.6):
+
+| Check | Result | |
+| --- | --- | --- |
+| 1. B's runs at least 1 video longer than C's | +0.21 | Fail |
+| 2. Analysis recovers programmed tiring of -0.10 | -0.08 | Pass |
+| 3. Under 5% of switches forced by an empty topic | 30% (B) | Fail |
+
+- **Forced switches are a pool-size problem.** At about 11 clips per topic (~88
+  clips) they fall to about 3% with blocks of 12 and under 1% with blocks of 8.
+- **The B-C gap tops out near +0.5 under the current rules**, whatever the step
+  size, because an indifferent viewer's e averages about 0, so B's p falls as
+  often as it rises.
+- **Different starting p per feed closes it:** B resets to 0.75 and C to 0.45 on
+  ~11 clips per topic gives a gap of +1.06, 4% forced, tiring still recovered.
+  Letting B ignore below-average videos gives +0.76. Neither is adopted yet.
 
 ## Conventions
 
