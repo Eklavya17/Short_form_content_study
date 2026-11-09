@@ -18,6 +18,7 @@ const player = createSwipePlayer({
   status: $("#status"),
   onSwipe: async (s) => {
     const status = await postJSON("/participant/api/swipe", {
+      clip_id: s.clip.id,
       watched_s: s.watchedS,
       swipe_s: s.swipeS,
       reached_end: s.reachedEnd,

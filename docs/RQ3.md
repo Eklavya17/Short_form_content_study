@@ -32,7 +32,9 @@ short-video-user-study/
 │   ├── scoring.py                engagement score e = (w - w_bar) + g
 │   ├── feeds.py                  feed engine for A, B, C (new_state, choose_next)
 │   ├── simulation.py             simulated viewers to tune config
-│   ├── storage.py                rq3_* tables, event types, queries
+│   ├── storage.py                rq3_* tables and queries (Postgres)
+│   ├── study.py                  the participant flow on top of storage (no Flask)
+│   ├── devdb.py                  local throwaway Postgres for development and tests
 │   ├── demo.py                   local demo of the feeds with a debug panel (testing only)
 │   ├── preview.py                participant preview at /participant (testing only)
 │   ├── web.py                    Flask blueprint: study pages and player API
@@ -235,8 +237,14 @@ study as a participant sees it, without the debug panel:
 
 **No repeats.** Videos are not split into three sets in advance. Each part's feed
 picks from the whole pool minus every clip already shown to that participant, so
-which clips land in which part is decided at runtime. Re-entering the same ID, or
-refreshing, resumes where that participant left off. State is in memory only.
+which clips land in which part is decided at runtime.
+
+**Stored in Postgres** (Part 2, step 1). Every participant, part, video shown and
+outcome is saved, along with the feed's engine state after each decision, so a
+refresh, a re-entered ID or a server restart resumes on the same video. Without
+`RQ3_DATABASE_URL`, `python -m rq3.demo` starts a local database in `.rq3_dev_db/`
+(git-ignored; delete it to start from scratch). After a server restart the browser
+forgets its ID, so re-enter it; in step 3 the ID comes from the study link instead.
 "Testing options" on the welcome screen sets videos per part (default 12).
 
 ## Part 2 decisions (Nov 2026)
@@ -248,6 +256,28 @@ refreshing, resumes where that participant left off. State is in memory only.
 | Participants | Pilot with people the team knows personally |
 | Participant ID | Arrives in the study link (`?pid=...`), e.g. from Qualtrics's end-of-consent redirect |
 | Devices | Lab laptops and participants' own devices, both supported |
+
+## Database (Part 2, step 1)
+
+`rq3/storage.py` defines four tables, all prefixed `rq3_`:
+
+| Table | One row per | Holds |
+| --- | --- | --- |
+| `rq3_participants` | participant | ID, feed order, interest ratings, videos per part, device, completion time |
+| `rq3_blocks` | part | feed, start and end, engine state after the latest decision |
+| `rq3_impressions` | video shown | clip, topic, decision (stay/switch/forced), p, draw, run position, the engine state it came from, and the outcome the player reported |
+| `rq3_events` | player event | for step 2 |
+
+Only raw facts are stored; swipe rule, g and e are recomputed when exporting.
+`rq3/study.py` runs each request in one transaction that locks the participant's
+row, so double clicks and two tabs cannot interleave, and a swipe for any clip
+other than the one playing is ignored. Feed orders are balanced from the
+database under an advisory lock, so people signing up at the same moment still
+get different orders.
+
+The URL comes from `RQ3_DATABASE_URL`, never `DATABASE_URL`, because the RQ1
+README tells people to export `DATABASE_URL` for the live RQ1 database. Tests
+start their own throwaway Postgres (`pip install -r requirements-dev.txt`).
 
 ## Conventions
 

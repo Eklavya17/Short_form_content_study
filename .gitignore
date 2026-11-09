@@ -5,3 +5,4 @@ __pycache__/
 data/*.db
 .DS_Store
 .pytest_cache/
+.rq3_dev_db/

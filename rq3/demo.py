@@ -37,6 +37,8 @@ from rq3.feeds import (
     restore_state,
     topic_odds,
 )
+from rq3 import storage
+from rq3.devdb import database_url_or_local
 from rq3.preview import preview
 from rq3.scoring import (
     Outcome,
@@ -289,7 +291,14 @@ def main() -> None:
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=int(os.environ.get("PORT", 5001)))
     args = parser.parse_args()
+
+    url, is_local = database_url_or_local()
+    app.config["RQ3_DATABASE_URL"] = url
+    with storage.connect(url) as connection:
+        storage.init_schema(connection)
+    where = "local development database in .rq3_dev_db/" if is_local else f"${storage.DATABASE_URL_ENV}"
     print(f"RQ3 demo: http://{args.host}:{args.port}  ({len(CLIPS)} clips, {len(TOPICS)} topics)")
+    print(f"Participant preview: http://{args.host}:{args.port}/participant  (data: {where})")
     app.run(host=args.host, port=args.port, debug=False)
 
 

@@ -1,2 +1,3 @@
 -r requirements.txt
 pytest>=8,<10
+pixeltable-pgserver>=0.7,<1  # local Postgres for development and tests

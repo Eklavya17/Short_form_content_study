@@ -18,7 +18,9 @@ Module map (see docs/RQ3.md for the full plan):
     simulation     simulated viewers, used to tune config before any participant
     demo           local demo page with a debug panel (testing only)
     preview        participant preview: three parts in a balanced order (testing only)
-    storage        database schema and queries for the study
+    storage        Postgres tables and queries for the study
+    study          the participant flow, stored in Postgres (no Flask)
+    devdb          a local throwaway Postgres for development and tests
     web            Flask routes for the study flow and the player API
     analysis       per-impression measures and the reported comparisons
 
