@@ -21,6 +21,7 @@ MODULES = [
     "rq3.config",
     "rq3.catalog",
     "rq3.build_catalog",
+    "rq3.media",
     "rq3.scoring",
     "rq3.feeds",
     "rq3.simulation",

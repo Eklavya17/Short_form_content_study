@@ -12,6 +12,7 @@ Module map (see docs/RQ3.md for the full plan):
     config         every tunable number, in one place
     catalog        clip metadata: topic, structure, stage and loop times
     build_catalog  turns the annotated CSV into the catalog JSON
+    media          reads an MP4's duration and faststart flag from its header
     scoring        how well one video went (the engagement score e)
     feeds          the feed engine: picks the next video for A, B and C
     simulation     simulated viewers, used to tune config before any participant

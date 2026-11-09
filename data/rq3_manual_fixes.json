@@ -1,0 +1,248 @@
+{
+  "about": "Hand-marked times, applied by rq3.build_catalog after parsing the CSV. 'stages' and 'loops', when present, replace the parsed ones for that clip. These start as guesses: watch the clip, correct the times, then set confirmed to true.",
+  "clips": {
+    "8526fc338dc": {
+      "title": "How Different Animals Yawn 😱🤯🥶#youtubeshorts #facts #shorts #vivia #shortsvideo #trending",
+      "confirmed": false,
+      "note": "Guessed setup 0:02-0:06 between the hook and loop 1.",
+      "stages": [
+        {
+          "label": "hook",
+          "start_s": 0.0,
+          "end_s": 2.0
+        },
+        {
+          "label": "setup",
+          "start_s": 2.0,
+          "end_s": 6.0
+        }
+      ]
+    },
+    "SbaxbDLPvxc": {
+      "title": "How Does It Spin? #Shorts",
+      "confirmed": false,
+      "note": "Guessed buildup 0:31-0:39 between development and payoff.",
+      "stages": [
+        {
+          "label": "hook",
+          "start_s": 0.0,
+          "end_s": 4.0
+        },
+        {
+          "label": "setup",
+          "start_s": 5.0,
+          "end_s": 14.0
+        },
+        {
+          "label": "development",
+          "start_s": 15.0,
+          "end_s": 31.0
+        },
+        {
+          "label": "buildup",
+          "start_s": 31.0,
+          "end_s": 39.0
+        },
+        {
+          "label": "payoff",
+          "start_s": 39.0,
+          "end_s": 47.0
+        }
+      ]
+    },
+    "0mo5PMw5dGw": {
+      "title": "More Mind Blowing Origins of Everyday Words #shorts #shortsvideo #facts #history #trivia",
+      "confirmed": false,
+      "note": "Guessed a 3 s hook; loop 1 starts at 0:00 in Pause Times.",
+      "stages": [
+        {
+          "label": "hook",
+          "start_s": 0.0,
+          "end_s": 3.0
+        }
+      ]
+    },
+    "HSSpUwCD-zE": {
+      "title": "Pack a Bento for My Daughter  - day 257 🍱 和我一起做便當",
+      "confirmed": false,
+      "note": "Guessed hook as 0 s to loop 1 at 1 s.",
+      "stages": [
+        {
+          "label": "hook",
+          "start_s": 0.0,
+          "end_s": 1.0
+        },
+        {
+          "label": "development",
+          "start_s": 36.0,
+          "end_s": 44.0
+        },
+        {
+          "label": "payoff",
+          "start_s": 44.0,
+          "end_s": 47.0
+        }
+      ]
+    },
+    "sFXh86UA8ks": {
+      "title": "Practice Makes Perfect 🤯🔥",
+      "confirmed": false,
+      "note": "Guessed a 3 s hook; loop 1 starts at 0:00 in Pause Times. Guessed the final payoff as the last loop, 13 s to the end.",
+      "stages": [
+        {
+          "label": "hook",
+          "start_s": 0.0,
+          "end_s": 3.0
+        },
+        {
+          "label": "payoff",
+          "start_s": 13.0,
+          "end_s": 22.454
+        }
+      ]
+    },
+    "AC_pmwadS-Q": {
+      "title": "Ranking The BEST DIY Crafts Ever 💖✨",
+      "confirmed": false,
+      "note": "Guessed hook as 0 s to loop 1 at 2 s. Guessed the final payoff as the last loop, 49 s to the end.",
+      "stages": [
+        {
+          "label": "hook",
+          "start_s": 0.0,
+          "end_s": 2.0
+        },
+        {
+          "label": "payoff",
+          "start_s": 49.0,
+          "end_s": 58.398
+        }
+      ]
+    },
+    "gPdHuKhd5-s": {
+      "title": "Ranking The FUNNIEST GAMING Moments Ever🤣🔥",
+      "confirmed": false,
+      "note": "Guessed a 3 s hook; loop 1 starts at 0:00 in Pause Times. Guessed the final payoff as the last loop, 39 s to the end.",
+      "stages": [
+        {
+          "label": "hook",
+          "start_s": 0.0,
+          "end_s": 3.0
+        },
+        {
+          "label": "payoff",
+          "start_s": 39.0,
+          "end_s": 46.719
+        }
+      ]
+    },
+    "aE2uP9StpHU": {
+      "title": "Smartest Guy I Ever Met: Flag Quiz",
+      "confirmed": false,
+      "note": "Guessed a 3 s hook; loop 1 starts at 0:00 in Pause Times. Guessed the final payoff as the last loop, 30 s to the end.",
+      "stages": [
+        {
+          "label": "hook",
+          "start_s": 0.0,
+          "end_s": 3.0
+        },
+        {
+          "label": "payoff",
+          "start_s": 30.0,
+          "end_s": 37.965
+        }
+      ]
+    },
+    "JpjG4Zy1X7U": {
+      "title": "Try NOT to Laugh Challenge! Top 10 Videos Episode 5 #funny #trynottolaugh",
+      "confirmed": false,
+      "note": "Guessed a 3 s hook; loop 1 starts at 0:00 in Pause Times. Guessed the final payoff as the last loop, 42 s to the end.",
+      "stages": [
+        {
+          "label": "hook",
+          "start_s": 0.0,
+          "end_s": 3.0
+        },
+        {
+          "label": "payoff",
+          "start_s": 42.0,
+          "end_s": 48.019
+        }
+      ]
+    },
+    "yRrXSP78z8o": {
+      "title": "Try not to Laugh ❗💀 | 452",
+      "confirmed": false,
+      "note": "Guessed hook as 0 s to loop 1 at 2 s.",
+      "stages": [
+        {
+          "label": "hook",
+          "start_s": 0.0,
+          "end_s": 2.0
+        }
+      ]
+    },
+    "lpr7YnEGmvs": {
+      "title": "Trying strange combos! 🤩 Radmiru #shorts",
+      "confirmed": false,
+      "note": "Guessed a 3 s hook; loop 1 starts at 0:00 in Pause Times.",
+      "stages": [
+        {
+          "label": "hook",
+          "start_s": 0.0,
+          "end_s": 3.0
+        }
+      ]
+    },
+    "nVwjnE7uRII": {
+      "title": "Very Satisfying and Relaxing Kinetic Sand ASMR",
+      "confirmed": false,
+      "note": "Guessed a 3 s hook; loop 1 starts at 0:00 in Pause Times.",
+      "stages": [
+        {
+          "label": "hook",
+          "start_s": 0.0,
+          "end_s": 3.0
+        }
+      ]
+    },
+    "Nd7aoDFJtMQ": {
+      "title": "Wait for THE LAST ONE⁉️😨 @Footopians #shorts #football #soccer",
+      "confirmed": false,
+      "note": "Guessed hook 0:00-0:03 and setup up to loop 1 at 4 s. Guessed the final payoff as the last loop, 18 s to the end.",
+      "stages": [
+        {
+          "label": "hook",
+          "start_s": 0.0,
+          "end_s": 3.0
+        },
+        {
+          "label": "setup",
+          "start_s": 3.0,
+          "end_s": 4.0
+        },
+        {
+          "label": "payoff",
+          "start_s": 18.0,
+          "end_s": 31.858
+        }
+      ]
+    },
+    "DEbOU9AV8sA": {
+      "title": "🐶 Sheriff Labrador Dress Up Stickers 🐾 DIY Paper Doll ASMR #shorts .",
+      "confirmed": false,
+      "note": "Guessed hook 0:00-0:03 and setup up to loop 1 at 8 s.",
+      "stages": [
+        {
+          "label": "hook",
+          "start_s": 0.0,
+          "end_s": 3.0
+        },
+        {
+          "label": "setup",
+          "start_s": 3.0,
+          "end_s": 8.0
+        }
+      ]
+    }
+  }
+}
