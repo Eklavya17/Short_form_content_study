@@ -55,13 +55,13 @@ database code, so the simulator and the server run the same logic.
 | Step | What | Where |
 | --- | --- | --- |
 | 1 | **Done.** Parse topic, duration, structure, stage, loop and payoff times for all 44 clips; list clips to mark by hand | `rq3/build_catalog.py`, `rq3/catalog.py`, `rq3/media.py` |
-| 2 | Similarity placeholder: same topic = similar, until VCA vectors exist | `rq3/feeds.py` (`_pick_clip`) |
+| 2 | **Done.** Similarity placeholder: same topic = similar, until VCA vectors exist | `rq3/feeds.py` (`_pick_clip`) |
 | 3 | **Done.** Swipe adjustment g for story, loop and hybrid clips (rule order below) | `rq3/scoring.py` |
-| 4 | Feed A: cooldown of 3 | `rq3/feeds.py` |
-| 5 | Feeds B and C: update p, clip, reset, run cap | `rq3/feeds.py` |
-| 6 | Topic choice on a switch: softmax over topic scores | `rq3/feeds.py` |
-| 7 | Forced switches: run cap or topic exhausted | `rq3/feeds.py` |
-| 8 | Decision record: p, draw, kind, state snapshot | `rq3/feeds.py` |
+| 4 | **Done.** Feed A: cooldown of 3 | `rq3/feeds.py` |
+| 5 | **Done.** Feeds B and C: update p, clip, reset, run cap | `rq3/feeds.py` |
+| 6 | **Done.** Topic choice on a switch: softmax over topic scores | `rq3/feeds.py` |
+| 7 | **Done.** Forced switches: run cap or topic exhausted | `rq3/feeds.py` |
+| 8 | **Done.** Decision record: p, draw, kind, state snapshot | `rq3/feeds.py` |
 | 9 | Simulator and its three checks; pick block length | `rq3/simulation.py` |
 | 10 | Tests for every rule | `tests/` |
 
@@ -124,6 +124,23 @@ Annotated stages come before loops because Pause Times often starts loop 1 at
 0:00, over the hook and setup. All values are in `rq3/config.py`. Likes are not
 part of e; the feed engine applies them. `classify_swipe` returns which rule
 matched, which the analysis reuses as the swipe stage.
+
+## The feed engine
+
+All three feeds live in `rq3/feeds.py` and share everything except two rules:
+
+| Feed | Stay on the topic? | p after each video | Topic on a switch |
+| --- | --- | --- | --- |
+| A | Never | (no p) | Random among topics with cooldown 0 |
+| B | Random draw against p | p + 0.3·e + 0.25·like | Softmax over topic scores |
+| C | Random draw against p | p − 0.3·\|e\| − 0.25·like | Softmax over topic scores |
+
+`new_state` starts a block (passing clips seen in earlier blocks), `first_video`
+opens it, and `choose_next` takes the viewer's `Outcome` and returns a `Decision`
+with p, the draw, stay / switch / forced switch, and a JSON-safe state snapshot.
+`FeedState.snapshot()` and `restore_state()` save and reload the state between
+requests. Within a topic the clip is random for now; it becomes "most similar to
+the last clip" once VCA similarity exists.
 
 ## Conventions
 
