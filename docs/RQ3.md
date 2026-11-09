@@ -239,6 +239,16 @@ which clips land in which part is decided at runtime. Re-entering the same ID, o
 refreshing, resumes where that participant left off. State is in memory only.
 "Testing options" on the welcome screen sets videos per part (default 12).
 
+## Part 2 decisions (Nov 2026)
+
+| Decision | Choice |
+| --- | --- |
+| Hosting | Render, a separate service from the RQ1 pilot, with its own Postgres |
+| Consent and surveys | All in Qualtrics; survey links come later |
+| Participants | Pilot with people the team knows personally |
+| Participant ID | Arrives in the study link (`?pid=...`), e.g. from Qualtrics's end-of-consent redirect |
+| Devices | Lab laptops and participants' own devices, both supported |
+
 ## Conventions
 
 - Numbers that might be tuned go in `rq3/config.py`, never inline.
