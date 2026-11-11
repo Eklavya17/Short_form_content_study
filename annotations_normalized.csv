@@ -1,0 +1,482 @@
+﻿video_url,topic_category,annotation_structure,title,annotation_timeline,manual_adjusted_annotation
+https://www.youtube.com/shorts/b6AOJjaM-ts,animals_nature,loops_only,Animal Fact Time! Let's Count Legs 🦵🦵🦵🦵 #learn #kids #shorts,"PHASES (seconds)
+0–3s | hook | payoff=none | hook=surprising_visual | Person shows two legs with numbers 2 and 1.
+3–6s | setup | payoff=none | loop=1 | Person holds magnifying glass over ant.
+6–8s | development | payoff=micro | loop=1 | Ant legs numbered 1-6 under magnifying glass.
+8–11s | setup | payoff=none | loop=2 | Person holds magnifying glass over spider.
+11–13s | development | payoff=micro | loop=2 | Spider legs numbered 1-8 under magnifying glass.
+13–15s | setup | payoff=none | loop=3 | Person holds magnifying glass over crab.
+15–18s | development | payoff=micro | loop=3 | Crab legs numbered 1-10 under magnifying glass.","LOOPS (seconds)
+Loop 1: 3–8s
+Loop 2: 8–11s
+Loop 3: 13–18s"
+https://www.youtube.com/shorts/YtfngilWGpI,animals_nature,loops_only,Animals With the Saddest Love Lives #facts #animalfacts #wildlife,"PHASES (seconds)
+0–3.44s | hook | payoff=none | hook=explicit_promise | Title promises painful love lives of animals.","LOOPS (seconds)
+Loop 1: 3.44–25.28s
+Loop 2: 25.28–43.12s
+Loop 3: 43.12–69.76s"
+https://www.youtube.com/shorts/YQIsL7Tq9j4,animals_nature,loops_only,Bizarre Animal Moments Caught On Camera 😱#animalfacts #wildlife #facts,"PHASES (seconds)
+0–2.32s | hook | payoff=none | hook=surprising_visual | Giraffe with monkeys on back.","LOOPS (seconds)
+Loop 1: 2.32–13.44s 
+Loop 2: 13.44–28.4s
+Loop 3: 28.4–35.28s
+Loop 4: 44.96–53.3595s"
+https://www.youtube.com/shorts/r1IuSV2jIpQ,animals_nature,terminal_primary,Jellyfish Shouldn’t be Sunbathing on Land! #nature #animals #shorts,"PHASES (seconds)
+0–1s | hook | payoff=none | hook=explicit_promise | Text overlay: 'Rescuing Beached Jellyfish From Low Tide'
+1–3.72s | development | payoff=none | Hand picks up jellyfish from rocks
+3.72–4.72s | development | payoff=none | Hand releases jellyfish into water
+4.72–6.72s | development | payoff=none | Hand points to another jellyfish
+6.72–8.36s | development | payoff=none | Hand picks up second jellyfish
+8.36–9.36s | payoff | payoff=primary | Jellyfish swims away into water",
+https://www.youtube.com/shorts/sixKg522WTY,animals_nature,loops_only,Skinwalkers Disguised As Animals 😨😨 Part 6 #shorts #scary,"PHASES (seconds)
+0–2.7s | hook | payoff=none | hook=surprising_visual | Dog with red eye and scary face.","LOOPS (seconds)
+Loop 1: 6.68–12s 
+Loop 2: 12–17.5s
+Loop 3: 17.5–26.5636s"
+https://www.youtube.com/shorts/w_s2gNPWE5Y,automotive,terminal_primary,WHO HURT TOYOTA?! 😭🔥,"PHASES (seconds)
+0–7s | hook | payoff=none | hook=surprising_visual | Man walks toward car, dramatic reveal.
+7–11.98s | setup | payoff=none | Reference to Akio Toyoda's reaction.
+13.36–16s | development | payoff=none | Man discusses Toyota's dedication.
+16.24–22.8s | development | payoff=none | Details on GR GT's development.
+22.92–24.92s | buildup | payoff=none | Man gestures toward engine.
+29–34.36s | development | payoff=none | Engine details and turbo setup.
+34.36–37.04s | payoff | payoff=micro | loop=1 | 641 HP displayed on screen.
+37.16–41.48s | development | payoff=none | loop=1 | Cooling system explanation.
+41.48–44.84s | development | payoff=none | loop=1 | Airflow and vacuum effect.
+44.84–47.84s | development | payoff=none | loop=1 | Carbon ceramic brakes explained.
+47.84–51.84s | development | payoff=none | loop=1 | Side vent and functional vents shown.
+51.88–56.4s | development | payoff=none | loop=1 | Explanation of rear-mounted transmission.
+56.4–58.52s | development | payoff=none | loop=1 | Rear bias weight distribution.
+58.52–60.68s | development | payoff=none | loop=1 | Exhaust tips and light bar.
+60.68–64.92s | development | payoff=none | loop=1 | Electric motor and torque smoothing.
+64.92–67.76s | development | payoff=none | loop=1 | Interior and drive mode selector.
+67.76–72.6s | development | payoff=none | loop=1 | Carbon bucket seats and digital display.
+74.64–80.08s | development | payoff=none | loop=1 | Electric motor's role in torque smoothing.
+80.08–82.32s | development | payoff=none | loop=1 | Smooth power band and predictable driving.
+82.32–86.4s | development | payoff=none | loop=1 | Interior simplicity and weight-saving features.
+86.4–87.52s | development | payoff=none | loop=1 | Screen with physical toggles.
+87.52–91.4s | development | payoff=none | loop=1 | Drive mode selector and paddle shifters.
+91.4–93.44s | development | payoff=none | loop=1 | Digital display and steering wheel.
+93.44–98.16s | payoff | payoff=primary | Full interior and features showcased.",
+https://www.youtube.com/shorts/8L1yN8fAgXc,automotive,terminal_primary,He Refused to Sign a Contract Demanding Positive Car Reviews #shorts,"PHASES (seconds)
+0–1.28s | hook | payoff=none | hook=explicit_promise | I'm not in any brand's pocket.
+1.28–12.4s | development | payoff=none | One brand isn't happy about other decisions.
+12.4–25.36s | development | payoff=none | Brand not happy about focus on different topic.
+25.36–46.48s | development | payoff=none | Difficult to be blunt about car being awful.
+46.48–55.04s | development | payoff=none | Audience wants truthfulness, brand in middle.
+55.04–64.96s | setup | payoff=none | Story never shared online, one brand not featured.
+64.96–77.28s | development | payoff=none | Brand wants press drive, contract signed.
+77.28–89.52s | development | payoff=none | Contract requires only positive comments.
+89.52–98.56s | development | payoff=none | Speaker refuses to drive car, big brand.
+98.56–105.28s | development | payoff=none | Speaker shocked by contract requirement.
+105.28–118.48s | development | payoff=none | Speaker can't talk about negative aspects.
+118.48–124.24s | development | payoff=none | Speaker doesn't know who else faces this.
+124.24–128.56s | payoff | payoff=micro | loop=1 | Speaker refuses to be biased, not in any brand's pocket.",
+https://www.youtube.com/shorts/eKuICGEwXNs,automotive,terminal_primary,THIS IS THE MOST POWERFUL SUV IN THE WORLD 🌍😤,"PHASES (seconds)
+0–2.72s | hook | payoff=none | hook=explicit_promise | Man says 'most powerful SUV on the planet'.
+2.72–105s | development | payoff=none | Man demonstrates car features and interior.
+105-109.32s | payoff | payoff=primary | Price of the car is revealed",
+https://www.youtube.com/shorts/oolH-wUrCi8,automotive,terminal_primary,#AamirKhan’s EPIC Mid-Air Bike Transformation Scene 🔥#Dhoom3 #AbhishekBachchan #ActionThriller,"PHASES (seconds)
+0–5s | hook | payoff=none | hook=surprising_visual | Motorcyclist rides on bridge, jumps into air.
+5–10s | development | payoff=none | Motorcyclist lands in water, splashes.
+10–15s | development | payoff=none | Motorcyclist rides on water, splashes.
+15–20s | development | payoff=none | Motorcyclist rides on water, splashes.
+20–25s | development | payoff=none | Motorcyclist rides on water, splashes.
+25–30s | development | payoff=none | Motorcyclist rides on water, splashes.
+30–35s | development | payoff=none | Motorcyclist rides on water, splashes.
+35–46.3935s | payoff | payoff=primary | Motorcyclist rides on water, splashes.",
+https://www.youtube.com/shorts/V1S_dCerNWg,automotive,terminal_primary,How Fuel Turns Into Motion (Car Engine Explained) #shorts,"PHASES (seconds)
+0–7.2s | hook | payoff=none | hook=question | Press gas pedal, car moves. How?
+7.2–13.8s | development | payoff=none | Fuel mixes with air, ignites in explosions.
+13.8–20.64s | development | payoff=none | Explosions push pistons, spin crankshaft.
+20.64–25.88s | development | payoff=none | Spinning motion travels through transmission.
+25.88–33.88s | payoff | payoff=primary | Every drive powered by controlled explosions.
+33.88–37.45s | setup | payoff=none | Click like and subscribe for daily videos.",
+https://www.youtube.com/shorts/WwndVLULgtk,automotive,terminal_primary,Mega Beast 2.0 | BENDA LFC 700 #harleydavidson #benda #motorcycle #cruiser #shorts,"PHASES (seconds)
+0–2.56s | hook | payoff=none | hook=surprising_visual | Man with helmet stands next to black motorcycle.
+2.56–12s | setup | payoff=none | Man walks around motorcycle, showing its features.
+12–15s | development | payoff=none | Passenger approaches and sits behind rider.
+15–24.218s | payoff | payoff=primary | Rider and passenger ride motorcycle away.",
+https://www.youtube.com/shorts/7Qwf_kXhbYY,automotive,terminal_primary,Most Fun Bike Gadget!,"PHASES (seconds)
+0–2.6s | hook | payoff=none | hook=surprising_visual | Man holds spray gun, gestures dramatically.
+2.6–6s | setup | payoff=none | Fills spray bottle with liquid.
+6–10s | development | payoff=none | Connects hose to spray gun, prepares for use.
+10–22.686s | payoff | payoff=primary | Sprays motorcycle, cleaning it thoroughly.",
+https://www.youtube.com/shorts/z_LkdUXDSJs,comedy_sketches,hybrid_loops_to_terminal,Heckler doesn’t get the joke…  #funny #standupcomedy #heckler,"PHASES (seconds)
+0–7s | hook | payoff=none | hook=explicit_promise | Comedian introduces test for becoming American.
+7–14s | development | payoff=none | Comedian describes test experience.
+14–21s | development | payoff=none | Comedian jokes about naming a state.
+21–25s | payoff | payoff=micro | loop=1 | Comedian reveals joke about Cincinnati.
+31–36s | development | payoff=none | Audience reacts to comedian's joke.
+36–44s | payoff | payoff=primary | Comedian concludes with self-deprecating remark.",
+https://www.youtube.com/shorts/6kkaG5wJJ5E,comedy_sketches,loops_only,Fast Pace 💎 Steven Wright     #comedy #standupcomedy #funny #youtube #shorts,"PHASES (seconds)
+0–7s | hook | payoff=none | hook=question | Comedian questions why he went through stop sign.
+
+","LOOPS (seconds)
+Loop 1: 7–15s
+Loop 2: 15–23s 
+Loop 3: 23–31s
+Loop 4: 31–44s
+Loop 5: 44–56s
+Loop 6: 56–69s
+Loop 7: 69–84s
+Loop 8: 84–99s 
+Loop 9: 99–116s"
+https://www.youtube.com/shorts/5V85_dGZsoc,comedy_sketches,terminal_primary,Invention of Bread...,"PHASES (seconds)
+0–2.26s | hook | payoff=none | hook=question | Princess asked for date.
+2.26–12.06s | setup | payoff=none | Peasant offers bread; pharaohs reject it.
+12.06–20.26s | development | payoff=none | Peasant explains bread's purpose.
+20.26–36.88s | development | payoff=none | Pharaohs question bread's safety.
+36.88–48.88s | development | payoff=none | Peasant confirms yeast; pharaohs accept.
+48.88–55.88s | development | payoff=none | Bread rises; peasant declares ready.
+55.88–61.88s | development | payoff=none | Pharaohs inspect bread for poison.
+61.88–73.7234s | payoff | payoff=primary | loop=1 | Pharaohs accept red dough for toast.",
+https://www.youtube.com/shorts/p2h4FJzLIes,comedy_sketches,terminal_primary,Oddball couple.. #comedy #comedian #shorts #standup #standupcomedy #comedyshorts #lebanon #ottawa,"PHASES (seconds)
+0–2.4s | hook | payoff=none | hook=explicit_promise | Comedian says 'here's one.'
+2.4–10.1s | development | payoff=none | Audience reacts to comedian's jokes.
+10.1–17.7s | development | payoff=none | Comedian asks audience questions.
+17.7–24s | development | payoff=none | Comedian continues with jokes and audience interaction.
+24–33.7s | development | payoff=none | Comedian continues with jokes and audience interaction.
+33.7–41.8s | development | payoff=none | Comedian continues with jokes and audience interaction.
+41.8–51.1s | development | payoff=none | Comedian continues with jokes and audience interaction.
+51.1–60.6s | development | payoff=none | Comedian continues with jokes and audience interaction.
+60.6–70.519s | payoff | payoff=primary | loop=1 | Comedian reveals absurd job with ISIS.",
+https://www.youtube.com/shorts/LcHfFtn2_6A,comedy_sketches,terminal_primary,Insults in a British accent get a pass here! #janineharouni #shorts,"PHASES (seconds)
+0–5.84s | hook | payoff=none | hook=explicit_promise | I live here now. I'm from the States originally, but I moved to London a few years ago to go to drama school
+5.84–9.28s | setup | payoff=none | because I wanted to study to become a serious stage actor
+9.28–13.28s | development | payoff=none | But after two years of training, my life took a very unexpected turn
+13.28–18s | development | payoff=none | And now, when I'm not doing comedy, as you can guess, I am a full-time stay-at-home actress
+18–23.6s | development | payoff=none | But I am glad that I moved over because I love living over here
+23.6–28.4s | development | payoff=none | I love the people. I love the accents over here because no matter what you guys say to me
+28.4–32.24s | development | payoff=none | if it's in a little British accent, I can't help but find it just completely charming
+32.24–33.92s | development | payoff=none | And it could be anything
+33.92–37.68s | development | payoff=none | One time, I was dressed up on a night out and this friend of a friend just went
+37.68–42.64s | development | payoff=none | oh my god, Jeanine, that is literally the cutest outfit I've ever seen
+43.36–46.88s | development | payoff=none | And I was like, oh, thank you. And then she went, it's not fair
+46.88–51.76s | payoff | payoff=primary | I wish my boobs were small enough to wear tops like that",
+https://www.youtube.com/shorts/TFdLUpN-NWw,comedy_sketches,terminal_primary,Too Young For THIS… #standupcomedy #shorts #funny,"PHASES (seconds)
+0–2s | hook | payoff=none | hook=question | I was too young to be doing c**k.
+2.6–4.8s | setup | payoff=none | First time I did it, I was 15 years old.
+5.7–8.1s | development | payoff=none | Yeah, which I knew was too young.
+8.2–13.6s | development | payoff=none | I knew it was too young when I looked down and I realized that we were cutting a line with a Yu-Gi-Oh! card.
+15.4–18.2s | development | payoff=none | That's... And I know most people are like, that's too young.
+18.2–22.1s | payoff | payoff=primary | And then some people are like, why are you 15 playing Yu-Gi-Oh! Dude, you're...",
+https://www.youtube.com/shorts/Xjuid-N_e1I,diy_crafts,terminal_primary,#tonniartandcraft #diy  #craft #art #handmade #shorts,"PHASES (seconds)
+0–1s | hook | payoff=none | hook=surprising_visual | Pink toothpaste tube with cute face.
+1–3s | setup | payoff=none | Brush and toothpaste tube shown.
+3–10s | development | payoff=none | Drawing toothpaste and brush on paper.
+10–13s | development | payoff=none | Cutting out drawing with scissors.
+13–19.02s | payoff | payoff=primary | Final product with toothpaste and brush.",
+https://www.youtube.com/shorts/fd063dKu0l0,diy_crafts,terminal_primary,Simple Box Joinery That Looks High-End #woodworking #diy #shorts,"PHASES (seconds)
+0–2s | hook | payoff=none | hook=surprising_visual | Wood piece with drawn pattern on table saw.
+2–5s | setup | payoff=none | Gluing and clamping wood pieces together.
+5–8s | development | payoff=none | Using planer and miter saw for shaping.
+8–13s | development | payoff=none | Assembling glued wood pieces into box shape.
+13–19.319s | payoff | payoff=primary | Final box assembly with clamps and glue.",
+https://www.youtube.com/shorts/cffWc9rhmjY,food_drink,terminal_primary,Marinating steak in water? @GugaFoods #shorts,"PHASES (seconds)
+0–4.64s | hook | payoff=none | hook=question | Chef questions if sparkling water tenderizes steaks.
+4.64–11.04s | setup | payoff=none | Chef prepares to test sparkling water on steaks.
+11.04–23.52s | development | payoff=none | Chef marinates steaks in sparkling water.
+23.52–33.2s | development | payoff=none | Chef observes steaks after marinating.
+33.2–46.72s | development | payoff=none | Chef cooks steaks and compares results.
+46.72–59.04s | payoff | payoff=primary | Chef tastes steaks and confirms sparkling water works.",
+https://www.youtube.com/shorts/yvetEiHIJ34,food_drink,terminal_primary,Panna Cotta with Raspberry Jam Sauce 🍓🍯 full recipe #shorts,"PHASES (seconds)
+0–2s | hook | payoff=none | hook=surprising_visual | Red dessert in glasses shown.
+2–20s | setup | payoff=none | Melting gelatin, whipping cream, adding milk and sugar.
+20–26s | development | payoff=none | loop=1 | Pouring red jelly into glasses.
+26–31.068s | payoff | payoff=primary | Final layered dessert with jam sauce.",
+https://www.youtube.com/shorts/hQ2khXg4FLA,food_drink,terminal_primary,Broccoli Cheddar Soup (Better than Panera!) Easy Recipe #shorts,"PHASES (seconds)
+0–6.5s | hook | payoff=none | hook=explicit_promise | Intro promises easy homemade version of Panera soup.
+6.5–14.5s | setup | payoff=none | Shows broccoli prep for soup.
+14.5–18.5s | setup | payoff=none | Grates carrots for soup.
+18.5–22s | setup | payoff=none | Grates cheese for soup.
+22–26.5s | setup | payoff=none | Melt butter in pot for soup.
+26.5–34s | development | payoff=none | Sauté onion in pot for soup.
+34–38s | development | payoff=none | Add garlic and sauté for soup.
+38–41s | development | payoff=none | Add flour to pot for soup.
+41–43s | development | payoff=none | Mix flour in pot for soup.
+43–48s | development | payoff=none | Add broth to pot for soup.
+48–51s | development | payoff=none | Add spices to pot for soup.
+51–54s | development | payoff=none | Add carrots to pot for soup.
+54–58s | development | payoff=none | Add broccoli to pot for soup.
+58.5–60.5s | development | payoff=none | Reduce heat and cover pot for soup.
+60.5–63s | development | payoff=none | Simmer soup for 15 minutes.
+63–69s | development | payoff=none | Add half-and-half and cheese to soup.
+69–71.5s | development | payoff=none | Mix until cheese melts in soup.
+71.5–76s | development | payoff=none | Simmer and turn off heat for soup.
+76–77.5s | payoff | payoff=primary | Serves soup in bowl.
+77.5–80.5s | buildup | payoff=none | Suggests pairing with bread.
+80.5–82.5s | buildup | payoff=none | Asks for favorite Panera soup.
+82.5–83.5s | buildup | payoff=none | Invites comments on favorite soup.
+83.5–85.5s | buildup | payoff=none | Calls for moment of truth.
+85.5–87s | buildup | payoff=none | Cheers to the soup.
+87–90s | payoff | payoff=primary | Final shot of finished soup.",
+https://www.youtube.com/shorts/01yYzX-_uKA,food_drink,terminal_primary,How To Cook Wagyu,"PHASES (seconds)
+0–4.4s | hook | payoff=none | hook=explicit_promise | Man holds large wagyu steak, promising unique cooking method.
+4.4–12.64s | setup | payoff=none | Man explains cutting and seasoning method for wagyu.
+12.64–23.44s | development | payoff=none | Man cuts and prepares wagyu for cooking.
+23.44–31.88s | development | payoff=none | Man greases pan with fat, prepares for cooking.
+31.88–38.36s | development | payoff=none | Man cooks wagyu on pan, flipping pieces for even browning.
+38.36–41.76s | payoff | payoff=primary | Man bites into cooked wagyu, praising its quality.",
+https://www.youtube.com/shorts/YSrCuOaj1Y0,food_drink,terminal_primary,I made the ULTIMATE Oreo Brookie! 🤯 #shorts #food #recipe,"PHASES (seconds)
+0–5.36s | hook | payoff=none | hook=surprising_visual | Man cuts and eats brownie with text overlay.
+5.36–9.84s | setup | payoff=none | Man prepares ingredients for dessert.
+9.84–17.52s | development | payoff=none | Mixes batter, adds Oreos, prepares baking pan.
+17.52–23.24s | buildup | payoff=none | Assembles brownie with Oreos, mentions treadmill.
+23.24–29.35s | payoff | payoff=primary | Final brownie shown with text overlay.",
+https://www.youtube.com/shorts/52G4V-8XdlE,food_drink,terminal_primary,Instant Roti Manchurian ASMR Cooking #shorts #asmr #recipe #crunchytreats #streetfood #summerspecial,"PHASES (seconds)
+0–2s | hook | payoff=none | hook=surprising_visual | Tortilla rolls on cutting board.
+2–5s | setup | payoff=none | Rolling tortillas with toothpicks.
+5–17.6s | development | payoff=none | Frying tortilla rolls in oil.
+17.6–27.7478s | payoff | payoff=primary | Saucing and garnishing fried rolls.",
+https://www.youtube.com/shorts/3C3rSZtXoFI,food_drink,terminal_primary,One Pan Cheesy Pasta ASMR Cooking #shorts #asmr #recipe #cooking #crunchytreats #streetfood #summer,"PHASES (seconds)
+0–0.4s | hook | payoff=none | hook=surprising_visual | Hand on wooden cutting board.
+0.4–2s | setup | payoff=none | Tomatoes and onions in pan.
+2–10s | development | payoff=none | Sautéing onions, adding spices, tomatoes.
+10–14s | development | payoff=none | Adding garlic and cream to sauce.
+14–23.5218s | payoff | payoff=primary | Pasta mixed with sauce served on plate.",
+https://www.youtube.com/shorts/74fNhrhZwvQ,food_drink,terminal_primary,Trying Costco’s NEW Waffle Cone Bar Cake #costco #costcofinds #foodreview #dessert #shorts,"PHASES (seconds)
+0–24.08s | hook | payoff=none | hook=surprising_visual | Waffle cone bar cake introduced with coffee.
+24.08–44s | setup | payoff=none | Man pairs cake with coffee and describes ingredients.
+44–61.95s | payoff | payoff=primary | Man tastes cake and gives final rating.",
+https://www.youtube.com/shorts/dRvB9jzSmCo,food_drink,terminal_primary,viral oreo marshmallow bars recipe 🍫 #chocolate #recipe #dessert #oreo #shorts #easyrecipe #food,"PHASES (seconds)
+0–3.1s | hook | payoff=none | hook=explicit_promise | Text overlay: 'pov: you're a little treat after dinner every night type of girl'.
+3.1–5.6s | setup | payoff=none | Oreos and marshmallows added to bowl.
+5.6–8.4s | development | payoff=none | Chocolate pudding added and mixed.
+8.4–10.64s | development | payoff=none | Mixture poured into baking tray.
+10.64–13.1s | development | payoff=none | Tray pressed down for even layer.
+13.1–15.1s | development | payoff=none | Tray cut into sections with knife.
+15.1–17.1s | development | payoff=none | Treats separated into individual pieces.
+17.1–19.2s | payoff | payoff=primary | Final cut treats displayed on board.
+19.2–20.82s | buildup | payoff=none | Treats arranged on cutting board.",
+https://www.youtube.com/shorts/NkwhkMNh-DQ,gaming,loops_only,Connect with them to help them get home safely #youtubeshorts #gaming #shorts,"PHASES (seconds)
+0–3s | hook | payoff=none | hook=question | Text asks to connect characters to homes.","LOOPS (seconds)
+Loop 1: 3–10s
+Loop 2: 10–15s 
+Loop 3: 15–20s
+Loop 4: 20–25s
+Loop 5: 25–30s
+Loop 6: 30–34.5977s"
+https://www.youtube.com/shorts/A7zBhaTn1Vk,gaming,loops_only,"Defeat lion Fight,Who Will WIN The Game 👊💸 #roblox #challenge #crazyfiltergames",,"LOOPS (seconds)
+Loop 1: 0–6.88s
+Loop 1: 6.88–21s
+Loop 2: 21–30.093s"
+https://www.youtube.com/shorts/g3uW-sVBRZw,gaming,loops_only,help Thesliceto #save #game #trending #shorts,,"LOOPS (seconds)
+Loop 1: 0–4s
+Loop 2: 5–9s
+Loop 3: 10–17.5543s"
+https://www.youtube.com/shorts/2jb3nH6_ius,gaming,hybrid_loops_to_terminal,Say The Word On Beat Challenge 43 | EASY MEDIUM HARD | Fast Rhythm Test |,,"LOOPS (seconds)
+Loop 1: 0–34s
+Loop 2: 34–70s
+Loop 3: 70–109.738s"
+https://www.youtube.com/shorts/NFVIsxfcEQ0,gaming,terminal_primary,Sonic line puzzle game challenge craft ideas #sonic #shorts #trending,"PHASES (seconds)
+0–10s | setup | payoff=none | Grid of Sonic characters with red marker.
+10-21s | payoff | payoff=primary | the correct line is drawn",
+https://www.youtube.com/shorts/8KAE9duHdMw,gaming,terminal_primary,Brockodile vs speed challenge 🤣🤣 #roblox #shorts,"PHASES (seconds)
+0–7.6s | development | payoff=none | Character runs on platforms, collects wins.
+7.6–8.359s | payoff | payoff=primary | Character lands on grass, wins displayed.",
+https://www.youtube.com/shorts/GGLyAaVtuRA,gaming,terminal_primary,MOP CC Fun #warcraft #worldofwarcraft #MMORPG #crowdcontrol #gameplay #commentary,"PHASES (seconds)
+0–18s | setup | payoff=none | Player prepares for combat.
+18–25s | development | payoff=none | Player engages in combat.
+25–30s | payoff | payoff=primary | Player reacts to combat outcome.",
+https://www.youtube.com/shorts/jUlsAmXWP5g,gaming,terminal_primary,Sonic and Amy Multicolor Pinball Game Challenge#sonic #shorts,"PHASES (seconds)
+0–25s | setup | payoff=none | Beeds are rolling across the board
+0–26.285s | payoff | payoff=primary | Beads poured into frame with Sonic image.",
+https://www.youtube.com/shorts/a3PIXwSdyQo,gaming,terminal_primary,Video game challenge runs are so funny,"PHASES (seconds)
+0–4.88s | hook | payoff=none | hook=explicit_promise | Player introduces funny challenge runs.
+4.88–9.64s | development | payoff=none | Player describes complex tricks and glitches.
+9.64–14.02s | development | payoff=none | Player explains enemy generation and wall obstacle.
+14.02–18.08s | development | payoff=none | Player describes wall obstacle after trick.
+18.08–20.84s | development | payoff=none | Player notes wall is unfair and unjumpable.
+20.84–25.4s | development | payoff=none | Player questions developers' design choice.
+25.4–29.0714s | payoff | payoff=primary | Player concludes wall is unfair and developers' design is odd.",
+https://www.youtube.com/shorts/__hYcpvp49M,music_performance,terminal_primary,"Billy Joel Talks About ""And So It Goes"" #billyjoel #songwriting #shorts","PHASES (seconds)
+0–4s | hook | payoff=none | hook=explicit_promise | You need to know what dissonance does.
+4–9s | setup | payoff=none | Billy Joel explains dissonance in song.
+9–13s | development | payoff=none | Billy Joel plays piano without dissonance.
+13–17.5s | buildup | payoff=none | Billy Joel says it sounds boring without dissonance.
+17.5–26s | development | payoff=none | Billy Joel adds dissonance notes to piano.
+26–30s | payoff | payoff=micro | loop=1 | Billy Joel mentions suspensions in chords.
+30–42s | development | payoff=none | Billy Joel continues playing piano with suspensions.
+42–48s | payoff | payoff=primary | Billy Joel explains suspensions create tension.",
+https://www.youtube.com/shorts/hUHZIjXJ1NI,music_performance,terminal_primary,Billy Joel talks about his songwriting process #billyjoel #song #shorts,"PHASES (seconds)
+0–4.16s | hook | payoff=none | hook=question | Question about vowel sounds in melody.
+4.16–8.64s | development | payoff=none | loop=1 | Keith introduces 'Vowel Movements'.
+8.64–12s | development | payoff=none | loop=1 | Keith explains vowel movement concept.
+12–16.72s | development | payoff=none | loop=1 | Keith demonstrates 'Stomp me up' with piano.
+16.72–21.92s | development | payoff=none | loop=1 | Keith discusses songwriting challenges.
+21.92–24.8s | development | payoff=none | loop=1 | Keith references Brenda Lee's memory.
+24.8–29.36s | development | payoff=none | loop=1 | Keith emphasizes tough words and chords.
+29.36–31.7881s | payoff | payoff=primary | loop=1 | Keith concludes vowel importance.",
+https://www.youtube.com/shorts/SGcgejCj2r0,music_performance,terminal_primary,Nirvana’s “Lithium” is songwriting perfection! #nirvana #kurtcobain #shorts,"PHASES (seconds)
+0–1.28s | hook | payoff=none | hook=explicit_promise | You might remember this band.
+1.28–19.36s | development | payoff=none | loop=1 | Explains borrowed chords and key changes.
+19.36–33.12s | development | payoff=none | loop=1 | Describes secondary dominant and borrowed chords.
+33.12–50.72s | development | payoff=none | loop=1 | Discusses Kurt's melody and chromatic notes.
+50.72–51.13s | payoff | payoff=primary | loop=1 | Concludes with 'massive hit' as result.",
+https://www.youtube.com/shorts/1PfA9xFtgT0,music_performance,terminal_primary,Billy Joel talks about “Piano Man” #piano #billyjoel #shorts,"PHASES (seconds)
+0–4.8s | hook | payoff=none | hook=explicit_promise | Billy Joel introduces 'Piano Man' as his most recognized song.
+4.8–11.44s | setup | payoff=none | Describes venues where he performed, setting context.
+11.44–27.92s | development | payoff=none | Explains how the song fits small spaces and big rooms.
+27.92–34.96s | buildup | payoff=none | Describes feeling lost in big rooms, needing bigger music.
+34.96–35.155s | payoff | payoff=primary | Concludes with the need for bigger music.",
+https://www.youtube.com/shorts/CNSgv6EGCaw,music_performance,loops_only,Rami vocals are need! #babymonster #ahyeon #asa #chiquita #ruka #rora #pharita #shorts #foryou #fyp,,"LOOPS (seconds)
+Loop 1: 0–2s
+Loop 2: 2–7s
+Loop 3: 7–12s
+Loop 4: 12-18.68s"
+https://www.youtube.com/shorts/73tdbnwpyM8,science_education,terminal_primary,Build Stronger Sandcastles with Science #shorts #science #experiment,"PHASES (seconds)
+0–4s | hook | payoff=none | hook=question | Dry sand doesn't hold up well.
+4–12s | setup | payoff=none | Wet sand holds more weight than dry.
+12–22s | development | payoff=none | Science sand holds weight with added friction.
+22–34s | development | payoff=none | Dry sand grains don't hold together well.
+34–46s | development | payoff=none | Wet sand holds better due to surface tension.
+46–57s | development | payoff=none | Adding friction improves weight holding.
+57–68s | development | payoff=none | Sandpaper adds friction to hold weight.
+68–79s | setup | payoff=none | Window screens added to sand layers.
+79–87s | development | payoff=none | Sand layers packed with screens for friction.
+87–98s | development | payoff=none | Screens add friction between sand grains.
+98–107s | development | payoff=none | Sand becomes strong with added friction.
+107–112s | development | payoff=none | Weight can be placed on science sand.
+112–124s | development | payoff=none | Science sand holds weight with screens.
+124–135.279s | payoff | payoff=primary | Science sand holds weight with screens.",
+https://www.youtube.com/shorts/RWa3bVel3AM,science_education,loops_only,10 Mind-Blowing Science Experiments You Can Do At Home! 🤯 #ScienceAtHome #Shorts #ScienceTricks,"PHASES (seconds)
+0–3s | hook | payoff=none | hook=surprising_visual | Gold bangle on scale with magnet under.","LOOPS (seconds)
+Loop 1: 3–9s
+Loop 2: 9–17s
+Loop 3: 17–27s
+Loop 4: 27–35s
+Loop 5: 35–41s
+Loop 6: 41–50s
+Loop 7: 50–58s
+Loop 8: 58–68s
+Loop 9: 68–76s
+Loop 10: 76–84s
+Loop 11: 84–92s
+Loop 12: 92–99s
+Loop 13: 99–108.16s"
+https://www.youtube.com/shorts/EagmMwvtUTw,science_education,loops_only,GK Quizzes -can you get all of them?. #quiz #shorts,,"LOOPS (seconds)
+Loop 1: 0–8s
+Loop 2: 8–17s
+Loop 3: 17–26s
+Loop 4: 26–34s
+Loop 5: 34–43s
+Loop 6: 43–53s
+Loop 7: 53–64.1567s"
+https://www.youtube.com/shorts/gStCKtWUUMU,science_education,terminal_primary,The power of a water vortex is insane ☠️ #physics #science #experiment,"PHASES (seconds)
+0–4.56s | hook | payoff=none | hook=question | Cork dropped into water, spinning.
+4.56–8.88s | development | payoff=none | Cork spins, water swirls.
+8.88–13.84s | buildup | payoff=none | Cork moves with water, disappears.
+13.84–16.56s | payoff | payoff=primary | loop=1 | Cork vanishes, returns to origin.",
+https://www.youtube.com/shorts/8bcX8f0vyk8,sports_fitness,hybrid_loops_to_terminal,Is this EVEN REAL???😭💀 No gravity skill #xntonio #shorts #football #soccer,"PHASES (seconds)
+0–2.48s | hook | payoff=none | hook=question | Man questions if trick is real.
+2.48–6s | setup | payoff=none | Man prepares to demonstrate trick.
+6–10.52s | development | payoff=none | Man explains trick mechanics.","LOOPS (seconds)
+Loop 1: 10.52–32s
+Loop 2: 37–49s
+Loop 2: 49–67.52s"
+https://www.youtube.com/shorts/7m_dYI_X0ck,sports_fitness,hybrid_loops_to_terminal,smooth movement🔥 #respect #amazing #smooth #ytshorts #believe #sports #skills #shorts #tiktok,,"LOOPS (seconds)
+Loop 1: 4–12s
+Loop 2: 12–15s
+Loop 3: 15–23s
+Loop 4: 23–28s
+Loop 5: 28–32s
+Loop 6: 32–37s
+Loop 7: 37–42s
+Loop 8: 42–47s
+Loop 9: 47–54.0096s"
+https://www.youtube.com/shorts/GtqHNCXfnec,sports_fitness,hybrid_loops_to_terminal,When NFL Refs Got Caught In 4K😂😲 #nfl #sports #americanfootball #shorts,"PHASES (seconds)
+0–3.04s | hook | payoff=none | hook=explicit_promise | NFL referees got caught rigging games.","LOOPS (seconds)
+Loop 1: 3.04–13.64s
+Loop 2: 13.64–23.12s
+Loop 3: 23.12–36s
+Loop 4: 36–44s
+Loop 5: 44–58.7465s"
+https://www.youtube.com/shorts/7uE-abgAqQY,sports_fitness,terminal_primary,Tom Brady has announcers anticipation! #shorts #nfl #tombrady,"PHASES (seconds)
+0–5s | hook | payoff=none | hook=explicit_promise | Tom Brady's anticipation is praised.
+5–8s | development | payoff=none | Tom Brady's anticipation is explained.
+8–16s | development | payoff=none | Jordan Love's performance is highlighted.
+16–23.6844s| development | payoff=primary | Drake May's interception is discussed.",
+https://www.youtube.com/shorts/JGU03Zdx0vU,sports_fitness,loops_only,Perfect smooth move videos #shorts #smooth #sports #skills,,"LOOPS (seconds)
+Loop 1: 0–3s
+Loop 2: 3–4s
+Loop 3: 4–8s
+Loop 4: 8–12s
+Loop 5: 12–16s
+Loop 6: 12–16s
+Loop 7: 16–19s
+Loop 8: 19–24s
+Loop 9: 24–28s
+Loop 10: 28–32s
+Loop 11: 32–36s
+Loop 12: 36–41s
+Loop 13: 41–46s
+Loop 14: 46–48s
+Loop 15: 48–55s
+Loop 16: 55–58.7465s"
+https://www.youtube.com/shorts/me2GCXmL7fw,technology_gadgets,terminal_primary,Apple Is The Only Phone Company Without This... #Shorts,"PHASES (seconds)
+0–2.56s | hook | payoff=none | hook=question | Why is Apple so behind?
+2.56–4.8s | setup | payoff=none | Google Pixel 11 Pro introduced.
+4.8–6.84s | setup | payoff=none | Google introduced feature.
+6.84–8.96s | setup | payoff=none | Android phones have desktop mode.
+8.96–11.4s | setup | payoff=none | Samsung's desktop mode shown.
+11.4–12.76s | setup | payoff=none | Google updated desktop mode.
+12.76–14.36s | setup | payoff=none | Pixel desktop mode called.
+14.36–16.84s | setup | payoff=none | Pixel turns into Chromebook.
+16.84–18.88s | development | payoff=none | Pixel desktop mode connected to monitor.
+18.88–21.64s | development | payoff=none | Pixel desktop mode displayed.
+21.64–23.36s | buildup | payoff=none | User loves Pixel features.
+23.36–25.96s | payoff | payoff=primary | loop=1 | User wonders when iPhone gets feature.",
+https://www.youtube.com/shorts/y0hDAJuknpY,technology_gadgets,terminal_primary,Samsung Fumbled The Galaxy Buds 4 Pro… #Shorts,"PHASES (seconds)
+0–3.84s | hook | payoff=none | hook=surprising_visual | Earbuds on blue mat with plant and button.
+3.84–10.48s | setup | payoff=none | Prying open case to reveal internal components.
+10.48–17.44s | development | payoff=none | Screws removed, battery exposed.
+17.44–23.36s | development | payoff=none | Wires and plastic shell noted as hard to remove.
+23.36–30.16s | development | payoff=none | Battery removed after prying and desoldering.
+30.16–36.72s | development | payoff=none | Bud opened, battery desoldered, plastic shell removed.
+36.72–41.2386s | payoff | payoff=primary| loop=1 | AirPods Pro 3s easier to repair than Samsung earbuds.",
+https://www.youtube.com/shorts/_pzYnS_wZZM,technology_gadgets,terminal_primary,Why is Everyone Buying this Gaming PC?!,"PHASES (seconds)
+0–4.88s | hook | payoff=none | hook=question | Why is everyone buying this $700 gaming PC?
+4.88–15.76s | development | payoff=none | Shows specs: Ryzen 5 5500, 16GB RAM, 4GB GPU.
+15.76–19.76s | buildup | payoff=none | 5-star reviews, everyone loved it.
+19.76–21.6s | payoff | payoff=primary | Test it out.",
+https://www.youtube.com/shorts/Dx1gHc49KuE,travel_places,hybrid_loops_to_terminal,These Travel Places Looks Unreal✈️ #travel #trip #vacation #explore #nature #shorts,"PHASES (seconds)
+0–1s | hook | payoff=none | hook=explicit_promise | Title: 'This is how social media scams you.'
+","LOOPS (seconds)
+Loop 1: 1–8.96s
+Loop 2: 8.96–15.52s"
+https://www.youtube.com/shorts/cpmsddzk-MY,travel_places,loops_only,Never Believe These Tourist Places! 😱 #shorts,"PHASES (seconds)
+0–1.5s | hook | payoff=none | hook=surprising_visual | Man standing on a pipe with text 'Look at how social media fooled.'","LOOPS (seconds)
+Loop 1: 1.5–13s
+Loop 2: 13–22s"
+https://www.youtube.com/shorts/TyTkZyruKJ4,travel_places,loops_only,These Places Look Unreal But Are 100% Real! 😱 #Travel #Explore #Adventure #Vacation #Shorts,"PHASES (seconds)
+0–2.24s | hook | payoff=none | hook=surprising_visual | Woman carrying bucket over head.","LOOPS (seconds)
+Loop 1: 2.24–8s
+Loop 2: 8–19.12s"
+https://www.youtube.com/shorts/JWY6cTS69Rk,travel_places,loops_only,15 places you must visit before you die.#shorts #motivation #travel,"PHASES (seconds)
+0–4s | hook | payoff=none | hook=explicit_promise | Text: 'Here are 15 places you must visit before you leave this world.'","LOOPS (seconds)
+Loop 1: 4–6s
+Loop 2: 6–9s
+Loop 3: 9–12s
+Loop 4: 12–15s
+Loop 5: 15–18s
+Loop 6: 18–21s
+Loop 7: 21–24s
+Loop 8: 24–27s
+Loop 9: 27–30s
+Loop 10: 30–33s
+Loop 11: 33–36s
+Loop 12: 36–39s
+Loop 13: 42–45s
+Loop 14: 45–48s"
+https://www.youtube.com/shorts/SceOrf1KIxs,travel_places,loops_only,Best Places to Visit - Part 10 #shorts,"PHASES (seconds)
+0–3.9s | hook | payoff=none | hook=surprising_visual | Biker jumps down dirt hill.","LOOPS (seconds)
+Loop 1: 4–6s
+Loop 2: 6–10s
+Loop 2: 10–14s
+Loop 2: 14–19s"
+https://www.youtube.com/shorts/g9wnWE_x-yk,travel_places,loops_only,Most Beautiful Places You Must See! 🌍😍 #Travel #Nature #Shorts,"PHASES (seconds)
+0–4s | hook | payoff=none | hook=surprising_visual | Hand holding pink cup with plastic in water.","LOOPS (seconds)
+Loop 1: 4–8s
+Loop 2: 8–12s
+Loop 3: 12-15.9985s"
