@@ -1,12 +1,6 @@
-﻿video_url,topic_category,annotation_structure,title,annotation_timeline,manual_adjusted_annotation
+video_url,topic_category,annotation_structure,title,annotation_timeline,manual_adjusted_annotation
 https://www.youtube.com/shorts/b6AOJjaM-ts,animals_nature,loops_only,Animal Fact Time! Let's Count Legs 🦵🦵🦵🦵 #learn #kids #shorts,"PHASES (seconds)
-0–3s | hook | payoff=none | hook=surprising_visual | Person shows two legs with numbers 2 and 1.
-3–6s | setup | payoff=none | loop=1 | Person holds magnifying glass over ant.
-6–8s | development | payoff=micro | loop=1 | Ant legs numbered 1-6 under magnifying glass.
-8–11s | setup | payoff=none | loop=2 | Person holds magnifying glass over spider.
-11–13s | development | payoff=micro | loop=2 | Spider legs numbered 1-8 under magnifying glass.
-13–15s | setup | payoff=none | loop=3 | Person holds magnifying glass over crab.
-15–18s | development | payoff=micro | loop=3 | Crab legs numbered 1-10 under magnifying glass.","LOOPS (seconds)
+0–3s | hook | payoff=none | hook=surprising_visual | Person shows two legs with numbers 2 and 1.","LOOPS (seconds)
 Loop 1: 3–8s
 Loop 2: 8–11s
 Loop 3: 13–18s"
@@ -259,8 +253,8 @@ Loop 5: 25–30s
 Loop 6: 30–34.5977s"
 https://www.youtube.com/shorts/A7zBhaTn1Vk,gaming,loops_only,"Defeat lion Fight,Who Will WIN The Game 👊💸 #roblox #challenge #crazyfiltergames",,"LOOPS (seconds)
 Loop 1: 0–6.88s
-Loop 1: 6.88–21s
-Loop 2: 21–30.093s"
+Loop 2: 6.88–21s
+Loop 3: 21–30.093s"
 https://www.youtube.com/shorts/g3uW-sVBRZw,gaming,loops_only,help Thesliceto #save #game #trending #shorts,,"LOOPS (seconds)
 Loop 1: 0–4s
 Loop 2: 5–9s
@@ -403,17 +397,16 @@ Loop 2: 3–4s
 Loop 3: 4–8s
 Loop 4: 8–12s
 Loop 5: 12–16s
-Loop 6: 12–16s
-Loop 7: 16–19s
-Loop 8: 19–24s
-Loop 9: 24–28s
-Loop 10: 28–32s
-Loop 11: 32–36s
-Loop 12: 36–41s
-Loop 13: 41–46s
-Loop 14: 46–48s
-Loop 15: 48–55s
-Loop 16: 55–58.7465s"
+Loop 6: 16–19s
+Loop 7: 19–24s
+Loop 8: 24–28s
+Loop 9: 28–32s
+Loop 10: 32–36s
+Loop 11: 36–41s
+Loop 12: 41–46s
+Loop 13: 46–48s
+Loop 14: 48–55s
+Loop 15: 55–58.7465s"
 https://www.youtube.com/shorts/me2GCXmL7fw,technology_gadgets,terminal_primary,Apple Is The Only Phone Company Without This... #Shorts,"PHASES (seconds)
 0–2.56s | hook | payoff=none | hook=question | Why is Apple so behind?
 2.56–4.8s | setup | payoff=none | Google Pixel 11 Pro introduced.
@@ -490,7 +483,8 @@ https://www.youtube.com/shorts/KZc1rpdIbuw,animals_nature,terminal_primary,#shor
 20.33–24.9s | payoff | payoff=micro | A later shot reveals vivid pink and orange markings. 
 24.9–32.97s | development | payoff=none | The montage presents a much larger orange lizard climbing near a mirror and resting across a man's arms. 
 32.97–38.615s | payoff | payoff=primary | The final shot depicts an orange, winged dragon-like creature above a wooded landscape.",
-https://www.youtube.com/shorts/SnaML50IQaE,gaming,loops_only,99% Of Gamers Love These Things… #shorts #viral,,"LOOPS (seconds) 
+https://www.youtube.com/shorts/SnaML50IQaE,gaming,loops_only,99% Of Gamers Love These Things… #shorts #viral,"PHASES (seconds) 
+0–4.4s | hook | payoff=none | hook=surprising_visual | The video opens with a man wearing a headset ","LOOPS (seconds) 
 Loop 1: 4.4–7.8s 
 Loop 2: 7.8–11.87s 
 Loop 3: 11.87–14.976s"
@@ -505,7 +499,8 @@ https://www.youtube.com/shorts/CDhcwwycD2c,comedy_sketches,terminal_primary,"All
 62.73–67.57s | payoff | payoff=micro | The translation reveals that the app's scripted reply offers him a helmet. 
 67.57–70.8s | buildup | payoff=none | He introduces what she actually said and pauses before the decisive word. 
 70.8–75.349s | payoff | payoff=primary | Her reply reveals that the venue serves tapas, reframing his bicycle request as being made in a restaurant.",
-https://www.youtube.com/shorts/0H7gHXrMC60,food_drink,loops_only,Healthy or Unhealthy Foods？,,"LOOPS (seconds) 
+https://www.youtube.com/shorts/0H7gHXrMC60,food_drink,loops_only,Healthy or Unhealthy Foods？,"PHASES (seconds) 
+0–3.17s | hook | payoff=none | hook=question | The host previews a question about food choices. ","LOOPS (seconds) 
 Loop 1: 3.17–11.17s 
 Loop 2: 11.17–16.8s 
 Loop 3: 16.8–24.77s 
@@ -537,7 +532,8 @@ https://www.youtube.com/shorts/Hs1rW7sxiog,gaming,hybrid_loops_to_terminal,Buses
 Loop 1: 0.5–3.47s 
 Loop 2: 3.47–6.47s 
 Loop 3: 6.47–30.421s"
-https://www.youtube.com/shorts/CkwG0kkiPmc,science_education,hybrid_loops_to_terminal,5 Facts That Could SAVE Your Life,,"LOOPS (seconds) 
+https://www.youtube.com/shorts/CkwG0kkiPmc,science_education,hybrid_loops_to_terminal,5 Facts That Could SAVE Your Life,"PHASES (seconds) 
+0–2.77s | hook | payoff=none | hook=question | The host previews life-saving facts.","LOOPS (seconds) 
 Loop 1: 2.77–7.93s 
 Loop 2: 7.93–14.93s 
 Loop 3: 14.93–25.73s 
@@ -557,14 +553,16 @@ Loop 3: 7.33–10.73s
 Loop 4: 10.73–18.37s 
 Loop 5: 18.37–25.03s 
 Loop 6: 25.03–28.33s"
-https://www.youtube.com/shorts/uX9YByPA5gw,gaming,terminal_primary,Mclaren P1 turbo x Forza Horizon #forzahorizon5 #forza #forzahorizon #forzahorizon6 #forzahorizon4,"PHASES (seconds) 0–2.7s | hook | payoff=none | hook=surprising_visual | A neon-lit wheel-and-shifter rig is framed beside a close-up of the red McLaren and other race cars. 
+https://www.youtube.com/shorts/uX9YByPA5gw,gaming,terminal_primary,Mclaren P1 turbo x Forza Horizon #forzahorizon5 #forza #forzahorizon #forzahorizon6 #forzahorizon4,"PHASES (seconds) 
+0–2.7s | hook | payoff=none | hook=surprising_visual | A neon-lit wheel-and-shifter rig is framed beside a close-up of the red McLaren and other race cars. 
 2.7–5.27s | setup | payoff=none | The game switches to the rear view with the McLaren lined up amid the other cars. 
 5.27–19.17s | development | payoff=none | The race begins. The driver steers and shifts through smoky, low-speed slides around the festival area. 
 19.17–37.1s | development | payoff=none | The McLaren straightens, leaves the festival area, and accelerates along the open road. 
 37.1–59.17s | development | payoff=none | The driver brakes and steers through traffic and bends, then accelerates again along the road. 
 59.17–61.6s | buildup | payoff=none | The speed display freezes as the race gives way to a slow-motion shot of the car, just before the placement screen. 
 61.6–62.08s | payoff | payoff=primary | The game displays TERMINOU 1º, confirming a first-place finish.",
-https://www.youtube.com/shorts/Vrcf1oHTdt0,food_drink,hybrid_loops_to_terminal,Are McDonalds Drinks ALL THE SAME SIZE？,,"LOOPS (seconds) 
+https://www.youtube.com/shorts/Vrcf1oHTdt0,food_drink,hybrid_loops_to_terminal,Are McDonalds Drinks ALL THE SAME SIZE？,"PHASES (seconds) 
+0–8s | hook | payoff=none | hook=surprising_visual | Establishes the setting for a McDonalds drink test.","LOOPS (seconds) 
 Loop 1: 15–26s
 Loop 2: 36–51.92s"
 https://www.youtube.com/shorts/7-fzf9AcUUo,comedy_sketches,loops_only,Can You Watch This Without Laughing？ Perfectly Cut Moments Ranked! 😂,,"LOOPS (seconds) 
@@ -576,7 +574,8 @@ Loop 5: 31.077–38.685s
 Loop 6: 38.685–46.939s 
 Loop 7: 46.939–55.43s 
 Loop 8: 55.43–61.056s"
-https://www.youtube.com/shorts/qyIzUOVG840,science_education,terminal_primary,Instantly Freezing Water!,"PHASES (seconds) 0–5.42s | hook | payoff=none | hook=question | The host previews a viral instant-freezing clip and asks whether it is science or fiction. 
+https://www.youtube.com/shorts/qyIzUOVG840,science_education,terminal_primary,Instantly Freezing Water!,"PHASES (seconds) 
+0–5.42s | hook | payoff=none | hook=question | The host previews a viral instant-freezing clip and asks whether it is science or fiction. 
 5.42–13.86s | setup | payoff=none | He introduces supercooling, when water stays liquid below its freezing point. 
 13.86–21.98s | setup | payoff=none | He prepares a test using pure bottled water in a smooth bottle and chills it in the freezer. 
 21.98–29.333s | development | payoff=none | The host compares the normal freezing point of 32°F with the liquid sample at 28°F. 29.333–38.375s | development | payoff=none | An animation shows how crystallization needs a starting point, such as an impurity or a scratch. 
@@ -611,7 +610,8 @@ https://www.youtube.com/shorts/X4pehLRhFhI,science_education,terminal_primary,Th
 28.98–43.62s | development | payoff=none | He cites Richard Feynman and tells students they are in good company if they do not understand the subject. 
 43.62–54s | buildup | payoff=none | He announces his teaching goal, says he is currently the only one who doesn't understand, then asks the class to look seven days ahead. 
 54–60.949s | payoff | payoff=primary | The caption reveals that the whole class will be unable to understand quantum mechanics in a week. He adds that students can then go spread their ignorance.",
-https://www.youtube.com/shorts/R8IHy4LfLRk,food_drink,loops_only,Trying EVERY Knock Off Snack,"PHASES (seconds) 0–4s | hook | payoff=none | hook=explicit_promise | The host presents popular knockoff snacks and promises to test whether they beat the originals. 4–4.96s | setup | payoff=none | loop=1 | The first comparison is Doritos versus Detos, with the original chip shown close up. ","LOOPS (seconds) 
+https://www.youtube.com/shorts/R8IHy4LfLRk,food_drink,loops_only,Trying EVERY Knock Off Snack,"PHASES (seconds) 
+0–4s | hook | payoff=none | hook=explicit_promise | The host presents popular knockoff snacks and promises to test whether they beat the originals.","LOOPS (seconds) 
 Loop 1: 4–9.94s 
 Loop 2: 9.94–17.88s 
 Loop 3: 17.88–26.23s 
@@ -645,7 +645,7 @@ https://www.youtube.com/shorts/IWndijL0khc,sports_fitness,terminal_primary,They 
 12.8–15.967s | buildup | payoff=none | The edit cuts to Stephen Curry gathering, releasing a three-pointer and watching it approach the hoop. 
 15.967–29.312s | payoff | payoff=primary | Curry’s three goes in. He points toward the bench, the shot is shown again, and the edit closes on the bench reaction and 138–87 final.",
 https://www.youtube.com/shorts/8XGMDdybbu4,comedy_sketches,hybrid_loops_to_terminal,Ranking Best Of Multiple Fails Moments,,"LOOPS (seconds) 
-Loop 1: 1–7.567s 
+Loop 1: 0–7.567s 
 Loop 2: 7.567–11.7s 
 Loop 3: 11.7–20.8s 
 Loop 4: 20.8–33.195s"
@@ -659,7 +659,7 @@ https://www.youtube.com/shorts/DpwJdqniIMk,sports_fitness,terminal_primary,The b
 31.633–38.667s | buildup | payoff=none | On the final straight, France closes on the front runners and draws alongside the leader just before the line. 
 38.667–42.353s | payoff | payoff=primary | France’s anchor leans across the line first. The edit shows the finish and her teammates embracing her.",
 https://www.youtube.com/shorts/HwwORvjiiuw,sports_fitness,loops_only,One in a million NFL moments🔥☠️,,"LOOPS (seconds) 
-Loop 1: 2.9–12.2s 
+Loop 1: 0–12.2s 
 Loop 2: 12.2–17.4s
  Loop 3: 17.4–22.5s 
 Loop 4: 22.5–27.567s 
@@ -684,7 +684,7 @@ Loop 4: 29–36s
 Loop 5: 36–49s 
 Loop 6: 49–60s 
 Loop 7: 60–64s 
-Loop 8: 84.8–77s"
+Loop 8: 64–77s"
 https://www.youtube.com/shorts/L4z8qq8xJTc,animals_nature,terminal_primary,Meerkat pup rescue #wildliferescue #lovestory #animals #rescueefforts #wildlife #cute#meerkat,"PHASES (seconds) 
 0–3.033s | hook | payoff=none | hook=explicit_promise | A man opens a roadside bag. The caption promises what happened after a couple rescued an abandoned baby meerkat. 
 3.033–5.433s | setup | payoff=none | The man lifts the bag and the tiny pup is shown inside before it is taken home. 
