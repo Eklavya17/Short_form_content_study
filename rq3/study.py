@@ -29,6 +29,12 @@ from rq3.feeds import Decision, Feed, PoolExhaustedError, choose_next, first_vid
 from rq3.scoring import Outcome, judge_swipe, score_outcome, watch_fraction
 
 PARTS = 3
+CONSENT_VERSION = "2026-11-14"
+SURVEY_QUESTIONS = {
+    "enjoyment": "Overall, I enjoyed watching the videos in this part.",
+    "repetition": "As this part went on, the videos began to feel repetitive.",
+    "continuation": "I would have liked to keep watching when this part ended.",
+}
 PARTICIPANT_ID_PATTERN = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
 MAX_EVENTS_PER_REQUEST = 200
 
@@ -41,11 +47,12 @@ class StudyError(ValueError):
 class Status:
     """Where a participant is, which is all the page needs to render."""
 
-    stage: str  # welcome, ready, watching, break or done
+    stage: str  # welcome, ready, watching, survey or done
     participant_id: str | None = None
     parts_done: int = 0
     videos_per_part: int = 0
     clip: Clip | None = None
+    survey_part: int | None = None
 
     def to_json(self) -> dict[str, Any]:
         payload: dict[str, Any] = {
@@ -55,6 +62,8 @@ class Status:
             "parts_done": self.parts_done,
             "videos_per_part": self.videos_per_part,
         }
+        if self.survey_part is not None:
+            payload["survey_part"] = self.survey_part
         if self.clip is not None:
             # Only what playback needs: never the topic or any engine detail.
             payload["clip"] = {
@@ -86,6 +95,8 @@ class Study:
         interest: dict[str, Any],
         videos_per_part: int | None = None,
         device: str | None = None,
+        *,
+        consented: bool = False,
     ) -> Status:
         """Register a participant, or return where an existing one is."""
         participant_id = participant_id.strip()
@@ -96,12 +107,17 @@ class Study:
 
         with db.transaction():
             participant = storage.get_participant(db, participant_id, lock=True)
+            if (participant is None or participant["consented_at"] is None) and consented is not True:
+                raise StudyError("Please read the study information and agree to participate before continuing.")
             if participant is None:
                 order = storage.assign_feed_order(db)  # takes the sign-up lock
                 participant = storage.get_participant(db, participant_id)  # created while we waited?
             if participant is None:
                 ratings = {t: _clamp_rating(interest.get(t, 3)) for t in self.topics}
                 storage.create_participant(db, participant_id, order, ratings, videos_per_part, device)
+                participant = storage.get_participant(db, participant_id)
+            if participant["consented_at"] is None:
+                storage.record_consent(db, participant_id, CONSENT_VERSION)
                 participant = storage.get_participant(db, participant_id)
             return self._status(db, participant)
 
@@ -119,7 +135,7 @@ class Study:
         with db.transaction():
             participant = self._locked_participant(db, participant_id)
             blocks = storage.blocks_for(db, participant_id)
-            if any(block["ended_at"] is None for block in blocks):
+            if any(block["ended_at"] is None or block["survey"] is None for block in blocks):
                 return self._status(db, participant)
             if len(blocks) >= PARTS:
                 raise StudyError("All parts are finished.")
@@ -155,15 +171,37 @@ class Study:
             storage.record_outcome(db, impressions[-1]["id"], _outcome_row(outcome))
 
             if len(impressions) >= participant["videos_per_part"]:
-                self._end_part(db, participant, block)
+                storage.end_block(db, block["id"])
                 return self._status(db, participant)
             try:
                 decision = choose_next(state, outcome, _rng())
             except PoolExhaustedError:
-                self._end_part(db, participant, block)
+                storage.end_block(db, block["id"])
                 return self._status(db, participant)
             storage.record_impression(db, block["id"], len(impressions) + 1, _decision_row(decision))
             storage.save_feed_state(db, block["id"], state.snapshot())
+            return self._status(db, participant)
+
+    def submit_survey(
+        self, db: storage.Connection, participant_id: str, part: int, answers: dict[str, int]
+    ) -> Status:
+        if type(part) is not int or not 1 <= part <= PARTS:
+            raise StudyError("Choose a valid part.")
+        if (not isinstance(answers, dict) or answers.keys() != SURVEY_QUESTIONS.keys()
+                or any(type(value) is not int or not 1 <= value <= 5 for value in answers.values())):
+            raise StudyError("Please answer all three questions using the 1-5 scale.")
+        with db.transaction():
+            participant = self._locked_participant(db, participant_id)
+            blocks = storage.blocks_for(db, participant_id)
+            block = next((b for b in blocks if b["block_number"] == part), None)
+            if block is None or block["ended_at"] is None:
+                raise StudyError("Finish this part before submitting its survey.")
+            if block["survey"] is None:
+                storage.record_survey(db, block["id"], answers)
+                block["survey"] = answers
+                if len(blocks) == PARTS and all(b["survey"] is not None for b in blocks):
+                    storage.mark_completed(db, participant_id)
+                    participant = storage.get_participant(db, participant_id)
             return self._status(db, participant)
 
     def record_events(self, db: storage.Connection, participant_id: str, events: list[dict[str, Any]]) -> int:
@@ -216,12 +254,16 @@ class Study:
                     "feed": block["feed"],
                     "started_at": block["started_at"],
                     "ended_at": block["ended_at"],
+                    "survey": block["survey"],
+                    "survey_submitted_at": block["survey_submitted_at"],
                     "videos": videos,
                 }
             )
         return {
             "participant_id": participant["id"],
             "created_at": participant["created_at"],
+            "consented_at": participant["consented_at"],
+            "consent_version": participant["consent_version"],
             "completed_at": participant["completed_at"],
             "feed_order": participant["feed_order"],
             "interest": participant["interest"],
@@ -258,12 +300,9 @@ class Study:
         participant = storage.get_participant(db, participant_id, lock=True)
         if participant is None:
             raise StudyError("Enter a participant ID first.")
+        if participant["consented_at"] is None:
+            raise StudyError("Please agree to participate before continuing.")
         return participant
-
-    def _end_part(self, db: storage.Connection, participant: dict[str, Any], block: dict[str, Any]) -> None:
-        storage.end_block(db, block["id"])
-        if block["block_number"] >= PARTS:
-            storage.mark_completed(db, participant["id"])
 
     def _status(self, db: storage.Connection, participant: dict[str, Any]) -> Status:
         blocks = storage.blocks_for(db, participant["id"])
@@ -274,12 +313,17 @@ class Study:
             "parts_done": ended,
             "videos_per_part": participant["videos_per_part"],
         }
+        if participant["completed_at"] is not None:
+            return Status("done", **common)
+        if participant["consented_at"] is None:
+            return Status("welcome", **common)
         if open_block is not None:
             clip = self.clips_by_id[open_block["feed_state"]["current_clip_id"]]
             return Status("watching", clip=clip, **common)
-        if ended >= PARTS:
-            return Status("done", **common)
-        return Status("break" if ended else "ready", **common)
+        for block in blocks:
+            if block["survey"] is None:
+                return Status("survey", survey_part=block["block_number"], **common)
+        return Status("ready", **common)
 
 
 def _open_block(blocks: list[dict[str, Any]]) -> dict[str, Any] | None:

@@ -184,6 +184,7 @@ tr.forced_switch td:nth-child(3) { color: var(--bad); }
 /* --- Participant preview -------------------------------------------------------- */
 
 body.participant { min-height: 100vh; }
+body.participant button:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .screen { display: flex; justify-content: center; padding: 24px 16px; }
 .screen.stage { flex-direction: column; align-items: center; padding-top: 16px; }
@@ -207,7 +208,12 @@ body.participant { min-height: 100vh; }
 .testing { margin: 14px 0; color: var(--muted); }
 .testing summary { cursor: pointer; }
 
-.survey-slot {
-  border: 1px dashed var(--line); border-radius: 8px;
-  padding: 18px; margin: 10px 0 18px; text-align: center;
+.consent { display: flex; align-items: start; gap: 8px; margin: 18px 0; }
+.survey-question { border: 0; border-bottom: 1px solid var(--line); padding: 0 0 18px; margin: 20px 0; min-width: 0; }
+.survey-question legend { font-weight: 600; margin-bottom: 10px; }
+.likert { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.likert label { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; font-size: 12px; cursor: pointer; }
+@media (max-width: 480px) {
+  .likert { grid-template-columns: 1fr; }
+  .likert label { flex-direction: row; text-align: left; }
 }

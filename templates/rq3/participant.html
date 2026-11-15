@@ -7,16 +7,27 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='rq3/demo.css') }}">
 </head>
 <body class="participant">
-  <header class="topbar">
-    <strong>Short video study</strong>
-    <span class="muted">Preview for testing: consent and surveys are added later.</span>
-    <span class="muted push" id="part-label"></span>
-  </header>
-
-  <!-- 1. Welcome: ID and topic interest -->
+  <!-- 1. Welcome: consent, ID and topic interest -->
   <section class="screen" id="screen-welcome" hidden>
     <div class="card narrow">
       <h1>Welcome</h1>
+      <p>This study compares experiences of watching short-video feeds. You will rate your
+        topic interests, watch videos in three parts, and answer three brief questions after each part.
+        You can watch each video as long as you like, skip ahead, and optionally like videos.</p>
+      <p>We save the following under your participant ID:</p>
+      <ul>
+        <li>Your consent and its time, topic-interest ratings, survey answers, and submission times.</li>
+        <li>The videos and feed order shown, viewing time, swipe positions, likes, replays,
+          pauses, buffering, playback errors, and when the study tab becomes hidden or visible.</li>
+        <li>Browser/device information reported by your browser, event timestamps, and the
+          feed's video-selection decisions.</li>
+      </ul>
+      <p>The study does not record your camera or microphone. Participation is voluntary:
+        you can stop at any time by closing the page. Data already submitted will remain saved.</p>
+      <label class="consent">
+        <input id="consent" type="checkbox">
+        <span>I have read this information and agree to participate and have these data collected.</span>
+      </label>
       <label class="field">
         <span>Participant ID</span>
         <input id="participant-id" type="text" autocomplete="off" placeholder="e.g. P001">
@@ -40,7 +51,7 @@
           <input id="videos-per-part" type="number" min="1" max="{{ max_videos_per_part }}" value="{{ videos_per_part }}">
         </label>
       </details>
-      <button id="begin-button" class="primary" type="button">Continue</button>
+      <button id="begin-button" class="primary" type="button" disabled>Continue</button>
       <p class="status" id="welcome-status"></p>
     </div>
   </section>
@@ -75,15 +86,28 @@
     <p class="status" id="status"></p>
   </section>
 
-  <!-- 4. Between parts: the Qualtrics survey goes here -->
-  <section class="screen" id="screen-break" hidden>
+  <!-- 4. Survey after each part -->
+  <section class="screen" id="screen-survey" hidden>
     <div class="card narrow">
-      <h1 id="break-title">Part 1 of 3 complete</h1>
-      <div class="survey-slot">
-        <b>Survey placeholder</b>
-        <p class="muted" id="survey-note">The Qualtrics survey about part 1 will open here.</p>
-      </div>
-      <button id="continue-button" class="primary" type="button">Continue to part 2</button>
+      <h1 id="survey-title">Part 1 of 3 complete</h1>
+      <p>Thinking only about the part you just watched, how much do you agree with each statement?</p>
+      <form id="survey-form">
+        {% for name, question in survey_questions.items() %}
+        <fieldset class="survey-question">
+          <legend>{{ question }}</legend>
+          <div class="likert">
+            {% for label in ['Strongly disagree', 'Disagree', 'Neither agree nor disagree', 'Agree', 'Strongly agree'] %}
+            <label>
+              <input type="radio" name="{{ name }}" value="{{ loop.index }}" required>
+              <span>{{ loop.index }} · {{ label }}</span>
+            </label>
+            {% endfor %}
+          </div>
+        </fieldset>
+        {% endfor %}
+        <button id="survey-submit" class="primary" type="submit">Submit and continue</button>
+        <p class="status error" id="survey-status" role="alert"></p>
+      </form>
     </div>
   </section>
 
@@ -91,17 +115,12 @@
   <section class="screen" id="screen-done" hidden>
     <div class="card narrow">
       <h1>All done, thank you!</h1>
-      <div class="survey-slot">
-        <b>Survey placeholder</b>
-        <p class="muted">The final Qualtrics survey will open here.</p>
-      </div>
       <details class="testing" open>
         <summary>Testing</summary>
         <p class="muted" id="done-info"></p>
         <div class="row">
           <a class="button" href="/participant/api/export">Download this participant's data (JSON)</a>
           <button id="new-button" type="button">Start a new participant</button>
-          <a class="button" href="/">Open the debug demo</a>
         </div>
       </details>
     </div>

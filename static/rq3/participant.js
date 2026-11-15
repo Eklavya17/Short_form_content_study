@@ -1,6 +1,6 @@
-// RQ3 participant preview: ID and topic interest, then three parts (one feed each,
-// in an order the server chooses), with a break screen where the Qualtrics survey
-// will go. The server decides every video; this page only plays them and reports
+// RQ3 participant flow: consent, ID and topic interest, then three parts (one feed
+// each, in an order the server chooses), with a survey after each part.
+// The server decides every video; this page only plays them and reports
 // what happened (outcomes on each swipe, player events in batches).
 //
 // A participant link carries the ID: /participant?pid=P001. Opening it resumes
@@ -8,7 +8,7 @@
 "use strict";
 
 const $ = (selector) => document.querySelector(selector);
-const SCREENS = ["welcome", "ready", "watching", "break", "done"];
+const SCREENS = ["welcome", "ready", "watching", "survey", "done"];
 const LINK_PID = new URLSearchParams(location.search).get("pid");
 let current = null; // last status from the server
 
@@ -46,13 +46,14 @@ function show(status) {
   current = status;
   const total = status.parts_total ?? 3;
   const done = status.parts_done ?? 0;
-  $("#part-label").textContent = status.stage === "watching" ? `Part ${done + 1} of ${total}` : "";
 
   if (status.stage === "welcome") {
     player.clear();
     const fromLink = Boolean(LINK_PID);
-    $("#participant-id").value = fromLink ? LINK_PID : "";
+    $("#participant-id").value = fromLink ? LINK_PID : (status.participant_id ?? "");
     $("#participant-id").readOnly = fromLink;
+    $("#consent").checked = false;
+    $("#begin-button").disabled = true;
     showScreen("welcome");
   } else if (status.stage === "ready") {
     $("#ready-title").textContent = `Part ${done + 1} of ${total}`;
@@ -60,12 +61,13 @@ function show(status) {
   } else if (status.stage === "watching") {
     showScreen("watching");
     if (player.clip?.id !== status.clip.id) player.load(status.clip);
-  } else if (status.stage === "break") {
+  } else if (status.stage === "survey") {
     player.clear();
-    $("#break-title").textContent = `Part ${done} of ${total} complete`;
-    $("#survey-note").textContent = `The Qualtrics survey about part ${done} will open here.`;
-    $("#continue-button").textContent = `Continue to part ${done + 1}`;
-    showScreen("break");
+    $("#survey-title").textContent = `Part ${status.survey_part} of ${total} complete`;
+    $("#survey-form").reset();
+    $("#survey-status").textContent = "";
+    $("#survey-submit").textContent = status.survey_part === total ? "Submit and finish" : "Submit and continue";
+    showScreen("survey");
   } else if (status.stage === "done") {
     player.clear();
     $("#done-info").textContent = `Participant ${status.participant_id}: ${total} parts of ${status.videos_per_part} videos.`;
@@ -80,6 +82,10 @@ function setWelcomeError(message) {
 }
 
 async function begin() {
+  if (!$("#consent").checked) {
+    setWelcomeError("Please read the study information and agree to participate before continuing.");
+    return;
+  }
   const ratings = {};
   document.querySelectorAll(".rating").forEach((set) => {
     ratings[set.dataset.topic] = Number(set.querySelector("input:checked").value);
@@ -89,6 +95,7 @@ async function begin() {
       participant_id: $("#participant-id").value,
       ratings,
       videos_per_part: Number($("#videos-per-part").value),
+      consented: $("#consent").checked,
     });
     setWelcomeError("");
     show(status);
@@ -110,14 +117,29 @@ async function newParticipant() {
   location.href = "/participant"; // drop any ?pid= from the address
 }
 
+async function submitSurvey(event) {
+  event.preventDefault();
+  const answers = Object.fromEntries(
+    Array.from(new FormData($("#survey-form")), ([name, value]) => [name, Number(value)])
+  );
+  $("#survey-submit").disabled = true;
+  $("#survey-status").textContent = "";
+  try {
+    show(await postJSON("/participant/api/survey", { part: current.survey_part, answers }));
+  } catch (error) {
+    $("#survey-status").textContent = error.message;
+  } finally {
+    $("#survey-submit").disabled = false;
+  }
+}
+
+$("#consent").addEventListener("change", () => {
+  $("#begin-button").disabled = !$("#consent").checked;
+});
 $("#begin-button").addEventListener("click", begin);
 $("#participant-id").addEventListener("keydown", (event) => { if (event.key === "Enter") begin(); });
 $("#start-part-button").addEventListener("click", startNextPart);
-$("#continue-button").addEventListener("click", () => {
-  // Between parts the participant would fill in the survey; here we go straight on.
-  showScreen("ready");
-  $("#ready-title").textContent = `Part ${current.parts_done + 1} of ${current.parts_total}`;
-});
+$("#survey-form").addEventListener("submit", submitSurvey);
 $("#new-button").addEventListener("click", newParticipant);
 
 // Opening a participant link resumes that participant; otherwise resume whoever

@@ -14,7 +14,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
-CATALOG_PATH = Path(__file__).resolve().parent.parent / "data" / "rq3_catalog.json"
+CATALOG_PATH = Path(__file__).resolve().parent.parent / "data" / "rq3_catalog_11_24.json"
 
 
 class Structure(str, Enum):

@@ -1,9 +1,8 @@
-"""Participant preview: the RQ3 study as a participant sees it, minus consent and
-surveys (those live in Qualtrics). Served by rq3.demo at /participant.
+"""The RQ3 participant study, served by rq3.demo at /participant.
 
 Flow: enter an ID and rate each topic, then three parts (one per feed) in an order
-chosen for you, with a break screen after each part where the Qualtrics survey
-will go. No debug information is shown, and the page never receives a clip's
+chosen for you, with consent at the start and a survey after each part.
+No debug information is shown, and the page never receives a clip's
 topic. All logic is in rq3.study; everything is stored in Postgres, so re-entering
 the same ID, refreshing, or restarting the server resumes where the participant
 left off. Clips never repeat for a participant.
@@ -18,7 +17,7 @@ from flask import Blueprint, Response, current_app, g, jsonify, render_template,
 from rq3 import storage
 from rq3.catalog import load_catalog
 from rq3.config import DEFAULT_CONFIG
-from rq3.study import Study, StudyError
+from rq3.study import SURVEY_QUESTIONS, Study, StudyError
 
 STUDY = Study(load_catalog(), DEFAULT_CONFIG)
 TOPIC_NAMES = {
@@ -30,6 +29,8 @@ TOPIC_NAMES = {
     "knowledge_tests": "Facts, quizzes and experiments",
     "sports_fitness": "Sports and fitness",
     "transformations_mechanisms": "Satisfying transformations and how things work",
+    "comedy_sketches": "Comedy and sketches",
+    "science_education": "Science and education",
 }
 
 preview = Blueprint("preview", __name__, url_prefix="/participant")
@@ -69,6 +70,7 @@ def participant_page():
         topic_names=TOPIC_NAMES,
         videos_per_part=STUDY.config.videos_per_block,
         max_videos_per_part=STUDY.max_videos_per_part,
+        survey_questions=SURVEY_QUESTIONS,
     )
 
 
@@ -99,6 +101,7 @@ def begin():
         data.get("ratings") or {},
         int(data.get("videos_per_part") or 0) or None,
         device=request.headers.get("User-Agent"),
+        consented=data.get("consented") is True,
     )
     session["participant_id"] = result.participant_id
     return jsonify(result.to_json())
@@ -121,6 +124,12 @@ def events():
         return jsonify({"kept": 0})
     data = request.get_json(force=True, silent=True) or {}
     return jsonify({"kept": STUDY.record_events(db(), participant_id(), data.get("events") or [])})
+
+
+@preview.post("/api/survey")
+def survey():
+    data = request.get_json(force=True)
+    return jsonify(STUDY.submit_survey(db(), participant_id(), data.get("part"), data.get("answers")).to_json())
 
 
 @preview.post("/api/new")

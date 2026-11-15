@@ -126,10 +126,20 @@ def connect(url: str) -> Connection:
 
 
 def init_schema(db: Connection) -> None:
-    """Create the RQ3 tables if they do not exist."""
+    """Create the RQ3 tables and add consent/survey fields to existing databases."""
     with db.transaction():
         for statement in SCHEMA_STATEMENTS:
             db.execute(statement)
+        db.execute("""
+            ALTER TABLE rq3_participants
+            ADD COLUMN IF NOT EXISTS consented_at TEXT,
+            ADD COLUMN IF NOT EXISTS consent_version TEXT
+        """)
+        db.execute("""
+            ALTER TABLE rq3_blocks
+            ADD COLUMN IF NOT EXISTS survey_json TEXT,
+            ADD COLUMN IF NOT EXISTS survey_submitted_at TEXT
+        """)
 
 
 def clear_all(db: Connection) -> None:
@@ -180,6 +190,14 @@ def mark_completed(db: Connection, participant_id: str) -> None:
     db.execute("UPDATE rq3_participants SET completed_at = %s WHERE id = %s", (utc_now(), participant_id))
 
 
+def record_consent(db: Connection, participant_id: str, version: str) -> None:
+    db.execute(
+        """UPDATE rq3_participants SET consented_at = %s, consent_version = %s
+        WHERE id = %s AND consented_at IS NULL""",
+        (utc_now(), version, participant_id),
+    )
+
+
 # --- Blocks (one per part) -----------------------------------------------------------
 
 
@@ -201,6 +219,8 @@ def blocks_for(db: Connection, participant_id: str) -> list[dict[str, Any]]:
     ).fetchall()
     for row in rows:
         row["feed_state"] = json.loads(row.pop("feed_state_json"))
+        survey = row.pop("survey_json")
+        row["survey"] = json.loads(survey) if survey is not None else None
     return rows
 
 
@@ -210,6 +230,14 @@ def save_feed_state(db: Connection, block_id: int, state: dict) -> None:
 
 def end_block(db: Connection, block_id: int) -> None:
     db.execute("UPDATE rq3_blocks SET ended_at = %s WHERE id = %s", (utc_now(), block_id))
+
+
+def record_survey(db: Connection, block_id: int, answers: dict[str, int]) -> None:
+    db.execute(
+        """UPDATE rq3_blocks SET survey_json = %s, survey_submitted_at = %s
+        WHERE id = %s AND survey_submitted_at IS NULL""",
+        (json.dumps(answers), utc_now(), block_id),
+    )
 
 
 # --- Impressions (one per video shown) ------------------------------------------------
