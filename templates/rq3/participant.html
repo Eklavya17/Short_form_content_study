@@ -44,6 +44,7 @@
         {% endfor %}
       </div>
       <p class="muted small">1 = not at all interested, 5 = very interested.</p>
+      {% if testing_tools %}
       <details class="testing">
         <summary>Testing options</summary>
         <label class="field inline">
@@ -51,6 +52,7 @@
           <input id="videos-per-part" type="number" min="1" max="{{ max_videos_per_part }}" value="{{ videos_per_part }}">
         </label>
       </details>
+      {% endif %}
       <button id="begin-button" class="primary" type="button" disabled>Continue</button>
       <p class="status" id="welcome-status"></p>
     </div>
@@ -126,6 +128,7 @@
         <h1>All done, thank you!</h1>
         <p>Your answers have been saved. You can close this page.</p>
       </div>
+      {% if testing_tools %}
       <details class="testing" open>
         <summary>Testing</summary>
         <p class="muted" id="done-info"></p>
@@ -134,6 +137,7 @@
           <button id="new-button" type="button">Start a new participant</button>
         </div>
       </details>
+      {% endif %}
     </div>
   </section>
 

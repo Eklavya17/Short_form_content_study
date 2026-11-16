@@ -74,7 +74,7 @@ function show(status) {
     showScreen("survey");
   } else if (status.stage === "done") {
     player.clear();
-    $("#done-info").textContent = `Participant ${status.participant_id}: ${total} parts of ${status.videos_per_part} videos.`;
+    if ($("#done-info")) $("#done-info").textContent = `Participant ${status.participant_id}: ${total} parts of ${status.videos_per_part} videos.`;
     const goToQuestionnaire = QUESTIONNAIRE && !status.questionnaire_done;
     $("#done-questionnaire").hidden = !goToQuestionnaire;
     $("#done-thanks").hidden = goToQuestionnaire;
@@ -119,7 +119,7 @@ async function begin() {
     const status = await postJSON("/participant/api/begin", {
       participant_id: $("#participant-id").value,
       ratings,
-      videos_per_part: Number($("#videos-per-part").value),
+      videos_per_part: $("#videos-per-part") ? Number($("#videos-per-part").value) : null, // null = the study default
       consented: $("#consent").checked,
     });
     setWelcomeError("");
@@ -165,7 +165,7 @@ $("#begin-button").addEventListener("click", begin);
 $("#participant-id").addEventListener("keydown", (event) => { if (event.key === "Enter") begin(); });
 $("#start-part-button").addEventListener("click", startNextPart);
 $("#survey-form").addEventListener("submit", submitSurvey);
-$("#new-button").addEventListener("click", newParticipant);
+$("#new-button")?.addEventListener("click", newParticipant); // only with the testing panels
 
 // Opening a participant link resumes that participant; otherwise resume whoever
 // this browser was last (after a refresh, for example).

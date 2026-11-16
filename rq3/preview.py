@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 import os
+import secrets
 
 from flask import Blueprint, Response, current_app, g, jsonify, redirect, render_template, request, session, url_for
 
@@ -38,6 +39,7 @@ TOPIC_NAMES = {
 }
 
 SURVEY_URL_ENV = "RQ3_SURVEY_URL"
+TESTING_TOOLS_ENV = "RQ3_TESTING_TOOLS"  # "1" shows the testing panels (local demo only)
 
 preview = Blueprint("preview", __name__, url_prefix="/participant")
 
@@ -70,6 +72,13 @@ def survey_url() -> str:
     return (current_app.config.get(SURVEY_URL_ENV) or os.environ.get(SURVEY_URL_ENV, "")).strip()
 
 
+def testing_tools() -> bool:
+    """Show the testing panels (videos per part, data download, new participant)?
+    Off unless RQ3_TESTING_TOOLS=1, so real participants never see them."""
+    value = current_app.config.get(TESTING_TOOLS_ENV) or os.environ.get(TESTING_TOOLS_ENV, "")
+    return str(value).strip().lower() in {"1", "true", "yes", "on"}
+
+
 # --- Routes --------------------------------------------------------------------------
 
 
@@ -83,7 +92,24 @@ def participant_page():
         max_videos_per_part=STUDY.max_videos_per_part,
         survey_questions=SURVEY_QUESTIONS,
         questionnaire_enabled=bool(survey_url()),
+        testing_tools=testing_tools(),
     )
+
+
+@preview.get("/join")
+def join():
+    """One link for a whole group: each browser gets its own random participant ID.
+
+    Opening it again in the same browser goes back to the same ID (to resume, or to
+    the welcome page if they had not started yet), never to a new one.
+    """
+    pid = participant_id() or session.get("join_id", "")
+    if not pid:
+        pid = f"P-{secrets.token_hex(4).upper()}"
+        while storage.get_participant(db(), pid):
+            pid = f"P-{secrets.token_hex(4).upper()}"
+        session["join_id"] = pid
+    return redirect(url_for("preview.participant_page", pid=pid))
 
 
 @preview.get("/questionnaire")
@@ -135,7 +161,8 @@ def begin():
         db(),
         str(data.get("participant_id", "")),
         data.get("ratings") or {},
-        int(data.get("videos_per_part") or 0) or None,
+        # only the testing panel may change it; real participants get the study default
+        (int(data.get("videos_per_part") or 0) or None) if testing_tools() else None,
         device=request.headers.get("User-Agent"),
         consented=data.get("consented") is True,
     )
@@ -176,6 +203,8 @@ def new_participant():
 
 @preview.get("/api/export")
 def export():
+    if not testing_tools():  # researchers export with `python -m rq3.admin` instead
+        return jsonify({"error": "Not available."}), 404
     payload = STUDY.export(db(), participant_id())
     return Response(
         json.dumps(payload, indent=2, ensure_ascii=False),

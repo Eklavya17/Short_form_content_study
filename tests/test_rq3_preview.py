@@ -11,7 +11,7 @@ URL = "http://127.0.0.1:5001"
 
 @pytest.fixture
 def client(database_url, db):
-    app.config.update(TESTING=True, RQ3_DATABASE_URL=database_url)
+    app.config.update(TESTING=True, RQ3_DATABASE_URL=database_url, RQ3_TESTING_TOOLS="1")
     with app.test_client() as test_client:
         yield test_client
 
@@ -85,6 +85,34 @@ def test_participant_link_resumes_a_known_participant(client):
     post(client, "new")
     arrived = post(client, "arrive", {"participant_id": "P5"}).get_json()
     assert arrived["stage"] == "watching" and arrived["clip"]["id"] == playing
+
+
+def test_participants_never_see_the_testing_tools(client):
+    app.config["RQ3_TESTING_TOOLS"] = ""
+    page = client.get("/participant", base_url=URL).data
+    assert b"Testing" not in page and b"videos-per-part" not in page and b"new-button" not in page
+    status = begin(client, "P8", videos_per_part=1)  # a tampered request is ignored
+    assert status["videos_per_part"] != 1
+    assert client.get("/participant/api/export", base_url=URL).status_code == 404
+
+
+def joined_pid(client):
+    response = client.get("/participant/join", base_url=URL)
+    assert response.status_code == 302
+    return response.location.split("pid=")[1]
+
+
+def test_group_link_gives_each_browser_its_own_id(client):
+    first = joined_pid(client)
+    assert first == joined_pid(client)  # reopening in the same browser keeps the ID
+    with app.test_client() as other_browser:
+        assert joined_pid(other_browser) != first
+    assert post(client, "arrive", {"participant_id": first}).get_json()["stage"] == "welcome"
+
+
+def test_group_link_resumes_someone_who_started(client):
+    begin(client, "P7")
+    assert joined_pid(client) == "P7"
 
 
 def test_participant_link_for_a_new_id_starts_at_welcome(client):
