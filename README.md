@@ -22,8 +22,8 @@ python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements.txt
 
-export DATABASE_URL='postgresql://rq1_study_user:6BnAq7xSwG8PZSZDTeRsqSfK59NIg1L5@dpg-dbf8msg473hc73c8jbo0-a.ohio-postgres.render.com/rq1_study'
-export ADMIN_PASSWORD='password'
+export DATABASE_URL='<External Database URL from the database page on Render; never commit it>'
+export ADMIN_PASSWORD='<choose a password>'
 
 flask --app app init-db
 flask --app app run --debug
@@ -32,7 +32,7 @@ flask --app app run --debug
 | Page | What to do |
 | --- | --- |
 | [Participant view](http://127.0.0.1:5000/) | Open in a private window for a fresh run. |
-| [Admin summary](http://127.0.0.1:5000/admin/summary) | Sign in as `admin` with password `password`. The page returns JSON. |
+| [Admin summary](http://127.0.0.1:5000/admin/summary) | Sign in as `admin` with the `ADMIN_PASSWORD` you set. The page returns JSON. |
 
 ### Reset pilot data
 
