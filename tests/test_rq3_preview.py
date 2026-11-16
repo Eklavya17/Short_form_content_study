@@ -126,6 +126,24 @@ def test_event_batches_are_stored(client):
     assert post(client, "events", {"events": events}).get_json()["kept"] == 1
 
 
+def test_a_resent_batch_is_not_stored_twice(client, db):
+    """The browser retries when it never got the reply; the first try may have arrived."""
+    begin(client)
+    clip = post(client, "next-part").get_json()["clip"]
+    batch = {"events": [
+        {"event_type": "pause", "clip_id": clip["id"], "video_time": 1.5, "client_wall_time": "2026-11-16T10:00:00.100Z"},
+        {"event_type": "resume", "clip_id": clip["id"], "video_time": 1.5, "client_wall_time": "2026-11-16T10:00:01.200Z"},
+    ]}
+    assert post(client, "events", batch).get_json()["kept"] == 2
+    assert post(client, "events", batch).get_json()["kept"] == 0
+    swipe = {"clip_id": clip["id"], "watched_s": 3, "swipe_s": 3, "reached_end": False, "liked": False, **batch}
+    first = post(client, "swipe", swipe).get_json()
+    again = post(client, "swipe", swipe).get_json()  # the same swipe re-sent
+    assert again["clip"]["id"] == first["clip"]["id"] != clip["id"]  # no video skipped
+    stored = db.execute("SELECT COUNT(*) AS n FROM rq3_events").fetchone()
+    assert (stored["n"] if isinstance(stored, dict) else stored[0]) == 2
+
+
 def test_events_without_a_participant_are_ignored(client):
     post(client, "new")
     assert post(client, "events", {"events": [{"event_type": "pause", "clip_id": "x"}]}).get_json()["kept"] == 0

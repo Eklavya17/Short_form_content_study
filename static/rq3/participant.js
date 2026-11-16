@@ -29,14 +29,24 @@ const player = createSwipePlayer({
   status: $("#status"),
   onEvent: eventLog.add,
   onSwipe: async (s) => {
-    const status = await postJSON("/participant/api/swipe", {
-      clip_id: s.clip.id,
-      watched_s: s.watchedS,
-      swipe_s: s.swipeS,
-      reached_end: s.reachedEnd,
-      liked: s.liked,
-      events: eventLog.takeAll(), // includes this swipe's own event
-    });
+    const events = eventLog.takeAll(); // includes this swipe's own event
+    let status;
+    try {
+      status = await postJSON("/participant/api/swipe", {
+        clip_id: s.clip.id,
+        watched_s: s.watchedS,
+        swipe_s: s.swipeS,
+        reached_end: s.reachedEnd,
+        liked: s.liked,
+        events,
+      });
+    } catch (error) {
+      eventLog.putBack(events); // sent again with the next request, not lost
+      if (error.message === SERVER_DOWN) {
+        throw new Error("Connection problem. Please check your internet connection and press ↓ again.");
+      }
+      throw error;
+    }
     show(status);
   },
 });

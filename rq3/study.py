@@ -322,13 +322,12 @@ class Study:
                 impression_ids[clip_id] = storage.impression_for_clip(db, participant_id, clip_id)
             if impression_ids[clip_id] is None:
                 continue
-            storage.record_event(db, impression_ids[clip_id], {
+            kept += storage.record_event(db, impression_ids[clip_id], {
                 "event_type": event["event_type"],
                 "video_time": _number_or_none(event.get("video_time")),
                 "client_wall_time": str(event.get("client_wall_time", ""))[:40] or None,
                 "details": event.get("details") if isinstance(event.get("details"), dict) else {},
-            })
-            kept += 1
+            })  # a repeat of an event already stored is skipped
         return kept
 
     def _locked_participant(self, db: storage.Connection, participant_id: str) -> dict[str, Any]:

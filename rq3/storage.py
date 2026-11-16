@@ -326,24 +326,35 @@ def impression_for_clip(db: Connection, participant_id: str, clip_id: str) -> in
 # --- Events ------------------------------------------------------------------------------
 
 
-def record_event(db: Connection, impression_id: int, event: dict[str, Any]) -> None:
+def record_event(db: Connection, impression_id: int, event: dict[str, Any]) -> bool:
+    """Store one player event. Returns False when the very same event (same video,
+    type, browser timestamp, video time and details) is already stored: the browser
+    re-sends a batch when it never got the reply, and the first try may have arrived."""
     if event["event_type"] not in EVENT_TYPES:
         raise ValueError(f"Unknown event type: {event['event_type']}")
-    db.execute(
+    values = {
+        "impression_id": impression_id,
+        "event_type": event["event_type"],
+        "video_time": event.get("video_time"),
+        "client_wall_time": event.get("client_wall_time"),
+        "received": utc_now(),
+        "details": json.dumps(event.get("details") or {}),
+    }
+    inserted = db.execute(
         """
         INSERT INTO rq3_events
           (impression_id, event_type, video_time, client_wall_time, server_received_at, details_json)
-        VALUES (%s, %s, %s, %s, %s, %s)
+        SELECT %(impression_id)s, %(event_type)s, %(video_time)s, %(client_wall_time)s, %(received)s, %(details)s
+        WHERE %(client_wall_time)s::text IS NULL OR NOT EXISTS (
+            SELECT 1 FROM rq3_events
+            WHERE impression_id = %(impression_id)s AND event_type = %(event_type)s
+              AND client_wall_time = %(client_wall_time)s
+              AND video_time IS NOT DISTINCT FROM %(video_time)s::double precision
+              AND details_json = %(details)s)
         """,
-        (
-            impression_id,
-            event["event_type"],
-            event.get("video_time"),
-            event.get("client_wall_time"),
-            utc_now(),
-            json.dumps(event.get("details") or {}),
-        ),
-    )
+        values,
+    ).rowcount
+    return inserted > 0
 
 
 def events_for(db: Connection, impression_id: int) -> list[dict[str, Any]]:

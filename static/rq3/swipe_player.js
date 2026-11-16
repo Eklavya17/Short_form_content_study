@@ -15,20 +15,33 @@
 // stall_end, hidden, visible, error.
 "use strict";
 
-const SERVER_DOWN = "Can't reach the server. Start it with `python -m rq3.demo`, then reload this page.";
+const SERVER_DOWN = "Connection problem. Please check your internet connection and try again.";
+// A dropped connection (common in Safari, or on a brief network blip) is retried
+// quietly before anything is shown. Every study request is safe to repeat: the
+// server returns the current state if the first try already arrived.
+const RETRY_DELAYS_MS = [500, 1500, 3000];
+const RETRY_STATUSES = new Set([502, 503, 504]); // the host restarting or waking up
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function postJSON(url, body) {
+  const options = {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body ?? {}),
+  };
   let response;
-  try {
-    response = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body ?? {}),
-    });
-  } catch {
-    throw new Error(SERVER_DOWN);
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      response = await fetch(url, options);
+      if (!RETRY_STATUSES.has(response.status) || attempt >= RETRY_DELAYS_MS.length) break;
+    } catch {
+      if (attempt >= RETRY_DELAYS_MS.length) throw new Error(SERVER_DOWN);
+    }
+    await sleep(RETRY_DELAYS_MS[attempt]);
   }
   const data = await response.json().catch(() => ({}));
+  if (RETRY_STATUSES.has(response.status)) throw new Error(SERVER_DOWN);
   if (!response.ok) throw new Error(data.error || `Request failed: ${response.status}`);
   return data;
 }
@@ -49,13 +62,17 @@ function createEventLog(url, { flushEveryMs = 5000 } = {}) {
     return events;
   }
 
+  function putBack(events) {
+    queue = events.concat(queue); // keep them for the next try
+  }
+
   async function flush() {
     if (!queue.length) return;
     const events = takeAll();
     try {
       await postJSON(url, { events });
     } catch {
-      queue = events.concat(queue); // keep them for the next try
+      putBack(events);
     }
   }
 
@@ -69,7 +86,7 @@ function createEventLog(url, { flushEveryMs = 5000 } = {}) {
   // Deferred so the player's own "hidden" event is queued first.
   document.addEventListener("visibilitychange", () => { if (document.hidden) setTimeout(flushOnExit, 0); });
   window.addEventListener("pagehide", flushOnExit);
-  return { add, takeAll, flush };
+  return { add, takeAll, putBack, flush };
 }
 
 function createSwipePlayer({ phone, video, stage, likeButton, nextButton, caption, progressBar, status, onSwipe, onTick, onEvent }) {
