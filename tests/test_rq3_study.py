@@ -10,7 +10,9 @@ from rq3 import storage
 from rq3.catalog import load_catalog
 from rq3.config import DEFAULT_CONFIG
 from rq3.scoring import Outcome, judge_swipe, score_outcome
-from rq3.study import PARTS, Study, StudyError
+from rq3.study import PARTS, SURVEY_QUESTIONS, Study, StudyError
+
+ANSWERS = {name: 3 for name in SURVEY_QUESTIONS}
 
 CLIPS = load_catalog()
 
@@ -34,29 +36,37 @@ def watch_part(study, db, pid):
     return shown, status
 
 
+def finish_part(study, db, pid, part):
+    """Watch a whole part, then answer its survey."""
+    ids, status = watch_part(study, db, pid)
+    assert status.stage == "survey" and status.survey_part == part
+    return ids, study.submit_survey(db, pid, part, ANSWERS)
+
+
 def test_three_parts_without_repeats(study, db):
-    assert study.begin(db, "P1", {}, videos_per_part=4).stage == "ready"
+    assert study.begin(db, "P1", {}, videos_per_part=4, consented=True).stage == "ready"
     shown = []
     for part in range(1, PARTS + 1):
-        ids, status = watch_part(study, db, "P1")
+        ids, status = finish_part(study, db, "P1", part)
         assert len(ids) == 4
         shown += ids
         assert status.parts_done == part
-        assert status.stage == ("done" if part == PARTS else "break")
+        assert status.stage == ("done" if part == PARTS else "ready")
     assert len(set(shown)) == 12
     assert storage.get_participant(db, "P1")["completed_at"] is not None
 
 
 def test_parts_follow_the_assigned_feed_order(study, db):
-    study.begin(db, "P1", {}, videos_per_part=2)
-    for _ in range(PARTS):
-        watch_part(study, db, "P1")
+    study.begin(db, "P1", {}, videos_per_part=2, consented=True)
+    for part in range(1, PARTS + 1):
+        finish_part(study, db, "P1", part)
     export = study.export(db, "P1")
     assert "".join(part["feed"] for part in export["parts"]) == export["feed_order"]
+    assert all(part["survey"] == ANSWERS for part in export["parts"])
 
 
 def test_a_restart_resumes_the_same_video_and_feed_state(study, db):
-    study.begin(db, "P1", {"food_drink": 5}, videos_per_part=6)
+    study.begin(db, "P1", {"food_drink": 5}, videos_per_part=6, consented=True)
     status = study.next_part(db, "P1")
     status = study.swipe(db, "P1", report(status, watched_s=30, liked=True))
     restarted = Study(CLIPS, DEFAULT_CONFIG)  # as if the server had restarted
@@ -67,7 +77,7 @@ def test_a_restart_resumes_the_same_video_and_feed_state(study, db):
 
 
 def test_a_repeated_or_stale_swipe_is_ignored(study, db):
-    study.begin(db, "P1", {}, videos_per_part=5)
+    study.begin(db, "P1", {}, videos_per_part=5, consented=True)
     first = study.next_part(db, "P1")
     second = study.swipe(db, "P1", report(first))
     again = study.swipe(db, "P1", report(first))  # same clip reported twice
@@ -77,9 +87,9 @@ def test_a_repeated_or_stale_swipe_is_ignored(study, db):
 
 
 def test_same_id_resumes_instead_of_restarting(study, db):
-    study.begin(db, "P1", {}, videos_per_part=3)
+    study.begin(db, "P1", {}, videos_per_part=3, consented=True)
     playing = study.next_part(db, "P1")
-    again = study.begin(db, "P1", {"gaming": 5}, videos_per_part=9)
+    again = study.begin(db, "P1", {"gaming": 5}, videos_per_part=9, consented=True)
     assert again.stage == "watching" and again.clip.id == playing.clip.id
     assert again.videos_per_part == 3
 
@@ -87,7 +97,7 @@ def test_same_id_resumes_instead_of_restarting(study, db):
 def test_feed_orders_are_balanced_even_when_people_start_at_once(study, database_url):
     def sign_up(i):
         with storage.connect(database_url) as connection:
-            study.begin(connection, f"P{i}", {})
+            study.begin(connection, f"P{i}", {}, consented=True)
 
     with ThreadPoolExecutor(max_workers=6) as pool:
         list(pool.map(sign_up, range(12)))
@@ -97,7 +107,7 @@ def test_feed_orders_are_balanced_even_when_people_start_at_once(study, database
 
 
 def test_export_recomputes_scores_from_raw_outcomes(study, db):
-    study.begin(db, "P1", {}, videos_per_part=2)
+    study.begin(db, "P1", {}, videos_per_part=2, consented=True)
     status = study.next_part(db, "P1")
     status = study.swipe(db, "P1", report(status, watched_s=1.0, swipe_s=1.0))
     video = study.export(db, "P1")["parts"][0]["videos"][0]
@@ -111,15 +121,15 @@ def test_export_recomputes_scores_from_raw_outcomes(study, db):
 @pytest.mark.parametrize("pid, videos, message", [
     ("", None, "Participant ID"),
     ("has space", None, "Participant ID"),
-    ("P1", 15, "Videos per part"),
+    ("P1", 999, "Videos per part"),
 ])
 def test_bad_input_is_refused(study, db, pid, videos, message):
     with pytest.raises(StudyError, match=message):
-        study.begin(db, pid, {}, videos_per_part=videos)
+        study.begin(db, pid, {}, videos_per_part=videos, consented=True)
 
 
 def test_swipe_without_a_playing_part_is_refused(study, db):
-    study.begin(db, "P1", {})
+    study.begin(db, "P1", {}, consented=True)
     with pytest.raises(StudyError, match="No part is playing"):
         study.swipe(db, "P1", {"clip_id": "x"})
 
@@ -138,7 +148,7 @@ def event(status, event_type, **details):
 
 
 def test_events_sent_with_a_swipe_are_stored_on_that_video(study, db):
-    study.begin(db, "P1", {}, videos_per_part=3)
+    study.begin(db, "P1", {}, videos_per_part=3, consented=True)
     first = study.next_part(db, "P1")
     events = [event(first, "first_frame", load_ms=240), event(first, "like"), event(first, "swipe", source="wheel")]
     study.swipe(db, "P1", report(first, events=events))
@@ -148,7 +158,7 @@ def test_events_sent_with_a_swipe_are_stored_on_that_video(study, db):
 
 
 def test_late_batches_still_land_on_the_right_video(study, db):
-    study.begin(db, "P1", {}, videos_per_part=3)
+    study.begin(db, "P1", {}, videos_per_part=3, consented=True)
     first = study.next_part(db, "P1")
     second = study.swipe(db, "P1", report(first))
     kept = study.record_events(db, "P1", [event(first, "hidden"), event(second, "pause")])
@@ -159,7 +169,7 @@ def test_late_batches_still_land_on_the_right_video(study, db):
 
 
 def test_unknown_event_types_and_clips_are_dropped(study, db):
-    study.begin(db, "P1", {}, videos_per_part=3)
+    study.begin(db, "P1", {}, videos_per_part=3, consented=True)
     first = study.next_part(db, "P1")
     bad = [{"event_type": "teleport", "clip_id": first.clip.id}, {"event_type": "pause", "clip_id": "not-shown"}]
     assert study.record_events(db, "P1", bad + [event(first, "pause")]) == 1
@@ -169,13 +179,68 @@ def test_unknown_event_types_and_clips_are_dropped(study, db):
 
 
 def test_deleting_a_participant_removes_everything_and_frees_their_order(study, db):
-    study.begin(db, "P1", {}, videos_per_part=2)
+    study.begin(db, "P1", {}, videos_per_part=2, consented=True)
     first = study.next_part(db, "P1")
     study.swipe(db, "P1", report(first, events=[event(first, "like")]))
     order = storage.get_participant(db, "P1")["feed_order"]
     assert storage.delete_participant(db, "P1")
     for table in storage.TABLES:
         assert db.execute(f"SELECT COUNT(*) AS n FROM {table}").fetchone()["n"] == 0
-    assert study.begin(db, "P2", {}).stage == "ready"
+    assert study.begin(db, "P2", {}, consented=True).stage == "ready"
     assert storage.get_participant(db, "P2")["feed_order"] == order
     assert not storage.delete_participant(db, "P1")
+
+
+# --- Consent and the survey after each part ------------------------------------------------
+
+
+def test_signing_up_requires_consent(study, db):
+    with pytest.raises(StudyError, match="agree to participate"):
+        study.begin(db, "P1", {})
+    assert storage.get_participant(db, "P1") is None
+    study.begin(db, "P1", {}, consented=True)
+    assert storage.get_participant(db, "P1")["consented_at"] is not None
+
+
+def test_next_part_waits_for_the_previous_survey(study, db):
+    study.begin(db, "P1", {}, videos_per_part=2, consented=True)
+    _, status = watch_part(study, db, "P1")
+    assert status.stage == "survey"
+    assert study.next_part(db, "P1").stage == "survey"  # cannot skip ahead
+
+
+@pytest.mark.parametrize("answers", [
+    {},
+    {"enjoyment": 3, "repetition": 3},
+    {"enjoyment": 3, "repetition": 3, "continuation": 6},
+    {"enjoyment": 3, "repetition": 3, "continuation": "4"},
+])
+def test_incomplete_or_out_of_range_surveys_are_refused(study, db, answers):
+    study.begin(db, "P1", {}, videos_per_part=2, consented=True)
+    watch_part(study, db, "P1")
+    with pytest.raises(StudyError, match="answer all three"):
+        study.submit_survey(db, "P1", 1, answers)
+
+
+def test_survey_before_the_part_ends_is_refused(study, db):
+    study.begin(db, "P1", {}, videos_per_part=3, consented=True)
+    study.next_part(db, "P1")
+    with pytest.raises(StudyError, match="Finish this part"):
+        study.submit_survey(db, "P1", 1, ANSWERS)
+
+
+def test_a_resubmitted_survey_keeps_the_first_answers(study, db):
+    study.begin(db, "P1", {}, videos_per_part=2, consented=True)
+    finish_part(study, db, "P1", 1)
+    study.submit_survey(db, "P1", 1, {name: 5 for name in SURVEY_QUESTIONS})
+    assert study.export(db, "P1")["parts"][0]["survey"] == ANSWERS
+
+
+def test_completed_only_after_the_last_survey(study, db):
+    study.begin(db, "P1", {}, videos_per_part=2, consented=True)
+    for part in (1, 2):
+        finish_part(study, db, "P1", part)
+    _, status = watch_part(study, db, "P1")
+    assert status.stage == "survey" and storage.get_participant(db, "P1")["completed_at"] is None
+    assert study.submit_survey(db, "P1", 3, ANSWERS).stage == "done"
+    assert storage.get_participant(db, "P1")["completed_at"] is not None

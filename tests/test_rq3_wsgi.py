@@ -6,6 +6,7 @@ import sys
 import pytest
 
 from rq3 import storage
+from rq3.catalog import load_catalog
 
 URL = "https://rq3-short-video-study.onrender.com"
 
@@ -22,11 +23,11 @@ def test_wsgi_app_serves_both_pages_and_the_health_check(database_url, db, monke
     client = app.test_client()
 
     health = client.get("/healthz", base_url=URL).get_json()
-    assert health == {"ok": True, "clips": 44, "database": True}
+    assert health == {"ok": True, "clips": len(load_catalog()), "database": True}
     assert b"RQ3 feed demo" in client.get("/", base_url=URL).data
     assert b"Participant ID" in client.get("/participant?pid=T1", base_url=URL).data
 
-    status = client.post("/participant/api/begin", json={"participant_id": "T1"}, base_url=URL).get_json()
+    status = client.post("/participant/api/begin", json={"participant_id": "T1", "consented": True}, base_url=URL).get_json()
     assert status["stage"] == "ready"
 
 

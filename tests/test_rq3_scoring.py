@@ -1,6 +1,7 @@
 """Swipe scorer: one test per rule, the rule order, and worked examples on real clips."""
 
 from dataclasses import replace
+from pathlib import Path
 
 import pytest
 
@@ -15,7 +16,11 @@ from rq3.scoring import (
 )
 
 CONFIG = DEFAULT_CONFIG
-CATALOG = {clip.id: clip for clip in load_catalog()}
+# Worked examples use well-known clips from the first (44-clip) catalog, kept in the
+# repo as a fixed reference; checks over every clip use the catalog the app loads.
+REFERENCE_CATALOG = Path(__file__).resolve().parent.parent / "data" / "rq3_catalog.json"
+CATALOG = {clip.id: clip for clip in load_catalog(REFERENCE_CATALOG)}
+ACTIVE_CATALOG = load_catalog()
 PYTHON_CATCH = CATALOG["hdjuzIYqTr0"]  # story: hook 0-4, development 4-43, buildup 43-54, payoff 54
 GUESS_THE_ANIMAL = CATALOG["rqsRdfdN4uI"]  # hybrid: hook 0-3, loops end 5/15/25/35, payoff 35
 BATTLEFIELD = CATALOG["ETbLDhSx1jU"]  # hybrid: setup 3-8, loop 6 ends 47, buildup 47-50 inside loop 7
@@ -215,7 +220,7 @@ def test_score_rejects_an_outcome_for_another_clip():
 
 
 def test_every_catalog_clip_scores_at_every_second():
-    for clip in CATALOG.values():
+    for clip in [*CATALOG.values(), *ACTIVE_CATALOG]:
         for second in range(int(clip.duration_s) + 1):
             g = swipe_adjustment(clip, float(second), False, CONFIG)
             assert -0.3 <= g <= 0.3, (clip.id, second)

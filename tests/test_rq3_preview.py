@@ -21,7 +21,7 @@ def post(client, path, body=None):
 
 
 def begin(client, participant_id="P1", videos_per_part=3):
-    response = post(client, "begin", {"participant_id": participant_id, "videos_per_part": videos_per_part})
+    response = post(client, "begin", {"participant_id": participant_id, "videos_per_part": videos_per_part, "consented": True})
     assert response.status_code == 200, response.get_json()
     return response.get_json()
 
@@ -44,9 +44,12 @@ def test_page_loads(client):
 def test_full_run_through_the_routes(client):
     assert begin(client)["stage"] == "ready"
     shown = []
-    for _ in range(3):
+    for part in range(1, 4):
         ids, status = watch_part(client)
         shown += ids
+        assert status["stage"] == "survey" and status["survey_part"] == part
+        answers = {"enjoyment": 4, "repetition": 2, "continuation": 5}
+        status = post(client, "survey", {"part": part, "answers": answers}).get_json()
     assert status["stage"] == "done" and len(set(shown)) == 9
 
 

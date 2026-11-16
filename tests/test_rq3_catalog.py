@@ -4,6 +4,7 @@ hand fixes, and the committed catalog file."""
 import csv
 import struct
 from collections import Counter
+from pathlib import Path
 
 import pytest
 
@@ -216,13 +217,20 @@ def test_parse_mvhd_version_1():
 # --- The committed catalog ---------------------------------------------------------
 
 
-def test_committed_catalog_has_all_44_hosted_clips():
+def test_active_catalog_has_60_clips_ten_per_topic():
     clips = load_catalog()
+    assert len(clips) == 60
+    assert set(Counter(clip.topic for clip in clips).values()) == {10}
+    assert len({clip.topic for clip in clips}) == 6
+    assert all(clip.duration_s > 0 for clip in clips)
+    assert len({clip.id for clip in clips}) == 60
+
+
+def test_reference_catalog_still_loads():
+    clips = load_catalog(Path(__file__).resolve().parent.parent / "data" / "rq3_catalog.json")
     assert len(clips) == 44
-    assert len({clip.topic for clip in clips}) == 8
     assert Counter(clip.structure for clip in clips) == {
         Structure.STORY: 17,
         Structure.LOOPS: 14,
         Structure.HYBRID: 13,
     }
-    assert all(clip.duration_s > 0 for clip in clips)

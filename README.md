@@ -14,7 +14,7 @@ The local links use port `5001` and require the app to be running locally or an 
 ## Database connection
 
 ```bash
-export RQ3_DATABASE_URL="postgresql://rq1_study_user:6BnAq7xSwG8PZSZDTeRsqSfK59NIg1L5@dpg-dbf8msg473hc73c8jbo0-a.ohio-postgres.render.com/rq1_study"
+export RQ3_DATABASE_URL="<External Database URL from the database page on Render; never commit it>"
 ```
 
 ## Participant results

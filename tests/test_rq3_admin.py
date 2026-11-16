@@ -8,7 +8,7 @@ from rq3.study import Study
 
 def test_list_and_delete(database_url, db, monkeypatch, capsys):
     monkeypatch.setenv(storage.DATABASE_URL_ENV, database_url)
-    Study(load_catalog(), DEFAULT_CONFIG).begin(db, "P9", {})
+    Study(load_catalog(), DEFAULT_CONFIG).begin(db, "P9", {}, consented=True)
 
     assert admin.main(["list"]) == 0
     assert "P9" in capsys.readouterr().out
@@ -20,7 +20,7 @@ def test_list_and_delete(database_url, db, monkeypatch, capsys):
 
 def test_delete_asks_first_and_keeps_data_on_no(database_url, db, monkeypatch):
     monkeypatch.setenv(storage.DATABASE_URL_ENV, database_url)
-    Study(load_catalog(), DEFAULT_CONFIG).begin(db, "P9", {})
+    Study(load_catalog(), DEFAULT_CONFIG).begin(db, "P9", {}, consented=True)
     monkeypatch.setattr("builtins.input", lambda _prompt: "n")
     assert admin.main(["delete", "P9"]) == 1
     assert storage.get_participant(db, "P9") is not None
