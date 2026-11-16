@@ -8,6 +8,8 @@ const endOverlay = document.querySelector("#end-overlay");
 const freeSwipeControls = document.querySelector("#free-swipe-controls");
 const swipeButton = document.querySelector("#swipe-button");
 const completeCard = document.querySelector("#complete-card");
+const questionnaireCard = document.querySelector("#questionnaire-card");
+const QUESTIONNAIRE_DELAY_S = 3;
 const status = document.querySelector("#status");
 
 let trial;
@@ -82,6 +84,21 @@ function updateInteractionControls() {
   );
 }
 
+function startQuestionnaireCountdown() {
+  const countdown = document.querySelector("#questionnaire-countdown");
+  let left = QUESTIONNAIRE_DELAY_S;
+  const tick = () => {
+    if (left <= 0) {
+      location.href = document.querySelector("#questionnaire-link").href;
+      return;
+    }
+    countdown.textContent = `Opening in ${left} second${left === 1 ? "" : "s"}...`;
+    left -= 1;
+    setTimeout(tick, 1000);
+  };
+  tick();
+}
+
 async function loadTrial({ autoplay = false } = {}) {
   // Fetch the current trial for the participant from the backend
   const payload = await api("/api/trial/current");
@@ -93,8 +110,13 @@ async function loadTrial({ autoplay = false } = {}) {
     player.load();
     document.querySelector(".player-card").hidden = true;
     title.hidden = true;
-    completeCard.hidden = false;
     status.textContent = "";
+    // With a questionnaire configured, send the participant there (by itself after
+    // a few seconds, or with the button); they come back to the thank-you card.
+    const goToQuestionnaire = payload.questionnaire && !payload.questionnaire_done;
+    questionnaireCard.hidden = !goToQuestionnaire;
+    completeCard.hidden = goToQuestionnaire;
+    if (goToQuestionnaire) startQuestionnaireCountdown();
     return;
   }
 

@@ -97,3 +97,21 @@ To rebuild the runtime catalog from the CSV, run this from the repository root.
 ```bash
 (cd utils && python generate_stimulus.py && mv stimuli_from_catalog.json ..)
 ```
+
+## End-of-study questionnaire (Qualtrics)
+
+When `STUDY_SURVEY_URL` is set (the anonymous link of the shared RQ1-RQ3 Qualtrics
+survey), a participant who has watched every video sees "Almost done" and is sent to
+the survey with `?pid=<their session id>&study=rq1-rq2` (change with `STUDY_NAME`).
+The survey shows its RQ1 and RQ2 sections, and its closing page links back to
+`/finished?pid=...&rid=<Qualtrics response id>`, which records
+`questionnaire_done_at` and `questionnaire_response_id` on the session and shows the
+thank-you card. Without `STUDY_SURVEY_URL` the study ends as before.
+
+- Participant links: `/?pid=P001` names the session, so the same link resumes it in
+  any browser. Visits without `pid` still get a random ID.
+- The three questionnaire columns are added to `sessions` automatically on the first
+  request after deploy.
+- `/admin/summary` lists each session's `completed_at` and questionnaire fields, to
+  join with the Qualtrics export on `pid`.
+- Tests: `pip install pytest pixeltable-pgserver`, then `pytest -q`.

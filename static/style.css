@@ -27,4 +27,5 @@ button:hover:not(:disabled) { background: #3636ab; }
 button.secondary { background: #e9e9f2; color: #292938; }
 button:disabled { opacity: .55; cursor: wait; }
 .status { min-height: 1.25rem; color: #c9c9db; font-size: .9rem; }
-.complete-card { max-width: 420px; margin: 6rem auto; padding: 2rem; border-radius: 18px; background: #1e1e2e; }
+.complete-card { max-width: 420px; margin: 6rem auto; padding: 2rem; border-radius: 18px; background: #1e1e2e; }a.button { display: inline-block; padding: .75rem 1.1rem; border-radius: 10px; background: #4444cc; color: #fff; font-weight: 700; text-decoration: none; }
+a.button:hover { background: #3636ab; }

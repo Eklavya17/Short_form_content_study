@@ -65,14 +65,34 @@ CREATE TABLE IF NOT EXISTS events (
 )
 """
 
-SCHEMA_STATEMENTS = (session_cmd, trials_cmd, response_cmd, events_cmd,)
+# end-of-study questionnaire (Qualtrics): when the participant was sent there, when
+# the survey's finish link brought them back, and Qualtrics' response ID for matching.
+questionnaire_cmd = """
+ALTER TABLE sessions
+    ADD COLUMN IF NOT EXISTS questionnaire_sent_at TEXT,
+    ADD COLUMN IF NOT EXISTS questionnaire_done_at TEXT,
+    ADD COLUMN IF NOT EXISTS questionnaire_response_id TEXT
+"""
+
+SCHEMA_STATEMENTS = (session_cmd, trials_cmd, response_cmd, events_cmd, questionnaire_cmd)
+
+_schema_ready = False
+
 
 def get_db() -> psycopg.Connection[dict[str, Any]]:
-    """Return one PostgreSQL connection for the current Flask request."""
+    """Return one PostgreSQL connection for the current Flask request. The first
+    connection in each process makes sure the schema is up to date, so a database
+    created before the questionnaire columns existed is upgraded on deploy."""
+    global _schema_ready
     if "db" not in g:
         if not DATABASE_URL:
             raise RuntimeError("DATABASE_URL must be set to a PostgreSQL connection URL.")
         g.db = psycopg.connect(DATABASE_URL, row_factory=dict_row)
+        if not _schema_ready:
+            for statement in SCHEMA_STATEMENTS:
+                g.db.execute(statement)
+            g.db.commit()
+            _schema_ready = True
     return g.db
 
 def close_db(_error: Exception | None) -> None:

@@ -2,14 +2,16 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import secrets
 from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 from random import Random
 from typing import Any
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
-from flask import Flask, Response, abort, jsonify, render_template, request, session
+from flask import Flask, Response, abort, jsonify, redirect, render_template, request, session
 from psycopg import IntegrityError
 
 # Custom imports
@@ -19,6 +21,14 @@ from db import get_db, init_db, close_db
 BASE_DIR = Path(__file__).resolve().parent
 STIMULI_PATH = BASE_DIR / "stimuli_from_catalog.json"
 RQ2_STIMULI_PATH = BASE_DIR / "stimuli_from_rq2.json"
+
+# End-of-study questionnaire (one Qualtrics survey shared by RQ1-RQ3). When
+# STUDY_SURVEY_URL is set, participants who finish every video are sent there with
+# ?pid=<their id>&study=<STUDY_NAME>; the survey's finish link brings them back to
+# /finished?pid=...&rid=..., which records that they completed it.
+SURVEY_URL_ENV = "STUDY_SURVEY_URL"
+STUDY_NAME = os.environ.get("STUDY_NAME", "rq1-rq2")  # this feed mixes RQ1 and RQ2 clips
+PARTICIPANT_ID_PATTERN = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
 
 app = Flask(__name__)
 # Set STUDY_SECRET_KEY in Render before deploying.
@@ -75,24 +85,56 @@ def load_stimuli() -> list[dict[str, Any]]:
         videos = json.load(stream)["videos"]
     return videos
 
-def ensure_session() -> str:
-    """Create a browser-local anonymous study session on its first visit."""
-    if "participant_id" in session:
-        return session["participant_id"]
+def ensure_session(link_pid: str | None = None) -> str:
+    """Return this browser's study session, creating it on the first visit.
 
-    participant_id = secrets.token_urlsafe(16)
-    rng = Random(secrets.randbits(64))
+    A participant link (/?pid=P001) names the session: the same ID resumes the
+    same session on any browser. Without a link the session gets a random ID, as
+    before. An ID that is not 1-64 letters, digits, - or _ is ignored.
+    """
+    if link_pid is not None and not PARTICIPANT_ID_PATTERN.match(link_pid):
+        link_pid = None
+    current = session.get("participant_id")
+    if current and link_pid in (None, current):
+        return current
+
     db = get_db()
+    if link_pid is not None:
+        if db.execute("SELECT 1 FROM sessions WHERE id = %s", (link_pid,)).fetchone():
+            session["participant_id"] = link_pid
+            return link_pid
+        participant_id = link_pid
+    else:
+        participant_id = secrets.token_urlsafe(16)
+
+    rng = Random(secrets.randbits(64))
     stimuli = build_session_feed(rng)
 
-    # adding to manage participant session and trial order
+    # adding to manage participant session and trial order; a second request for the
+    # same new ID (two tabs opened at once) keeps the first one's assignment
     db.execute(
-        "INSERT INTO sessions (id, trial_order_json, started_at) VALUES (%s, %s, %s)",
+        """INSERT INTO sessions (id, trial_order_json, started_at) VALUES (%s, %s, %s)
+        ON CONFLICT (id) DO NOTHING""",
         (participant_id, json.dumps(stimuli), utc_now()),
     )
     db.commit()
     session["participant_id"] = participant_id
     return participant_id
+
+
+def survey_url() -> str:
+    return (app.config.get(SURVEY_URL_ENV) or os.environ.get(SURVEY_URL_ENV, "")).strip()
+
+
+def add_query(url: str, values: dict[str, str]) -> str:
+    """`url` with `values` set in its query string, keeping any other parameters."""
+    parts = urlsplit(url)
+    query = [(k, v) for k, v in parse_qsl(parts.query, keep_blank_values=True) if k not in values]
+    return urlunsplit(parts._replace(query=urlencode(query + list(values.items()))))
+
+
+def finished_all_videos(study_session: dict[str, Any]) -> bool:
+    return study_session["current_position"] >= len(json.loads(study_session["trial_order_json"]))
 
 def current_trial(participant_id: str) -> dict[str, Any] | None:
     db = get_db()
@@ -163,8 +205,51 @@ def init_db_command() -> None:
 
 @app.get("/")
 def study() -> str:
-    ensure_session()
+    ensure_session(request.args.get("pid"))
     return render_template("study.html")
+
+
+@app.get("/questionnaire")
+def questionnaire():
+    """Send a participant who has watched every video to the Qualtrics questionnaire."""
+    url = survey_url()
+    participant_id = session.get("participant_id")
+    if not url or not participant_id:
+        return redirect("/")
+    db = get_db()
+    study_session = db.execute("SELECT * FROM sessions WHERE id = %s", (participant_id,)).fetchone()
+    if study_session is None or not finished_all_videos(study_session):
+        return redirect("/")
+    db.execute(
+        "UPDATE sessions SET questionnaire_sent_at = %s WHERE id = %s AND questionnaire_sent_at IS NULL",
+        (utc_now(), participant_id),
+    )
+    db.commit()
+    return redirect(add_query(url, {"pid": participant_id, "study": STUDY_NAME}))
+
+
+@app.get("/finished")
+def finished():
+    """Where the questionnaire's "Click here to finish the study" link lands."""
+    participant_id = request.args.get("pid", "").strip()
+    response_id = request.args.get("rid", "").strip()
+    if not PARTICIPANT_ID_PATTERN.match(response_id):
+        response_id = None
+    db = get_db()
+    study_session = None
+    if PARTICIPANT_ID_PATTERN.match(participant_id):
+        study_session = db.execute("SELECT * FROM sessions WHERE id = %s", (participant_id,)).fetchone()
+    if study_session is None or not finished_all_videos(study_session):
+        message = "This questionnaire does not match a participant who finished the videos."
+        return render_template("message.html", message=message), 400
+    db.execute(
+        """UPDATE sessions SET questionnaire_done_at = %s, questionnaire_response_id = %s
+        WHERE id = %s AND questionnaire_done_at IS NULL""",
+        (utc_now(), response_id, participant_id),
+    )
+    db.commit()
+    session["participant_id"] = participant_id
+    return redirect("/")
 
 @app.get("/api/trial/current")
 def get_current_trial():
@@ -172,7 +257,20 @@ def get_current_trial():
     # retrieve the current trial for the participant (e.g. the video they are currently on), if any
     trial = current_trial(participant_id)
     if trial is None:
-        return jsonify({"complete": True})
+        db = get_db()
+        db.execute(
+            "UPDATE sessions SET completed_at = %s WHERE id = %s AND completed_at IS NULL",
+            (utc_now(), participant_id),
+        )
+        db.commit()
+        study_session = db.execute(
+            "SELECT questionnaire_done_at FROM sessions WHERE id = %s", (participant_id,)
+        ).fetchone()
+        return jsonify({
+            "complete": True,
+            "questionnaire": bool(survey_url()),
+            "questionnaire_done": study_session["questionnaire_done_at"] is not None,
+        })
 
     probes = json.loads(trial["probe_plan_json"])
 
@@ -362,7 +460,8 @@ def admin_summary():
 
     session_rows = get_db().execute(
         """
-        SELECT id AS session_id, trial_order_json
+        SELECT id AS session_id, trial_order_json, completed_at,
+               questionnaire_sent_at, questionnaire_done_at, questionnaire_response_id
         FROM sessions
         ORDER BY started_at DESC, id
         """
@@ -382,8 +481,15 @@ def admin_summary():
         "voluntary_swipes": [row for row in voluntary_swipes if not is_rq2_trial(row)],
         "rq2_voluntary_swipes": [row for row in voluntary_swipes if is_rq2_trial(row)],
         "sessions": [
-            {"session_id": session_id, "video_order": order}
-            for session_id, order in video_orders.items()
+            {
+                "session_id": row["session_id"],
+                "video_order": video_orders[row["session_id"]],
+                "completed_at": row["completed_at"],
+                "questionnaire_sent_at": row["questionnaire_sent_at"],
+                "questionnaire_done_at": row["questionnaire_done_at"],
+                "questionnaire_response_id": row["questionnaire_response_id"],
+            }
+            for row in session_rows
         ],
     })
 
