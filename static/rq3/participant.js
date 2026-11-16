@@ -10,7 +10,11 @@
 const $ = (selector) => document.querySelector(selector);
 const SCREENS = ["welcome", "ready", "watching", "survey", "done"];
 const LINK_PID = new URLSearchParams(location.search).get("pid");
+// Set by the server when RQ3_SURVEY_URL points at an external (Qualtrics) questionnaire.
+const QUESTIONNAIRE = document.body.dataset.questionnaire === "on";
+const QUESTIONNAIRE_DELAY_S = 3;
 let current = null; // last status from the server
+let questionnaireTimer = null;
 
 const eventLog = createEventLog("/participant/api/events");
 
@@ -71,8 +75,29 @@ function show(status) {
   } else if (status.stage === "done") {
     player.clear();
     $("#done-info").textContent = `Participant ${status.participant_id}: ${total} parts of ${status.videos_per_part} videos.`;
+    const goToQuestionnaire = QUESTIONNAIRE && !status.questionnaire_done;
+    $("#done-questionnaire").hidden = !goToQuestionnaire;
+    $("#done-thanks").hidden = goToQuestionnaire;
     showScreen("done");
+    if (goToQuestionnaire) startQuestionnaireCountdown();
   }
+}
+
+// Move on to the questionnaire by itself after a few seconds; the button works too.
+function startQuestionnaireCountdown() {
+  clearInterval(questionnaireTimer);
+  let left = QUESTIONNAIRE_DELAY_S;
+  const tick = () => {
+    if (left <= 0) {
+      clearInterval(questionnaireTimer);
+      location.href = $("#questionnaire-link").href;
+      return;
+    }
+    $("#questionnaire-countdown").textContent = `Opening in ${left} second${left === 1 ? "" : "s"}...`;
+    left -= 1;
+  };
+  tick();
+  questionnaireTimer = setInterval(tick, 1000);
 }
 
 function setWelcomeError(message) {

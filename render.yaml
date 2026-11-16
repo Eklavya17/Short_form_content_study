@@ -23,6 +23,11 @@ services:
           property: connectionString
       - key: RQ3_SECRET_KEY
         generateValue: true
+      # The Qualtrics survey link participants go to after the last part, e.g.
+      # https://illinois.qualtrics.com/jfe/form/SV_xxxx. Set it in the Render
+      # dashboard; leave it empty to end the study in the app.
+      - key: RQ3_SURVEY_URL
+        sync: false
 
 databases:
   - name: rq3-study-db

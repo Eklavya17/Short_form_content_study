@@ -1,7 +1,10 @@
 """The RQ3 participant study, served by rq3.demo at /participant.
 
 Flow: enter an ID and rate each topic, then three parts (one per feed) in an order
-chosen for you, with consent at the start and a survey after each part.
+chosen for you, with consent at the start and a survey after each part. When
+RQ3_SURVEY_URL is set (a Qualtrics survey link), the participant is then sent
+there with ?pid=...&study=rq3, and the survey's end redirect brings them back to
+/participant/finished?pid=...&rid=... so we know they completed it.
 No debug information is shown, and the page never receives a clip's
 topic. All logic is in rq3.study; everything is stored in Postgres, so re-entering
 the same ID, refreshing, or restarting the server resumes where the participant
@@ -11,8 +14,9 @@ left off. Clips never repeat for a participant.
 from __future__ import annotations
 
 import json
+import os
 
-from flask import Blueprint, Response, current_app, g, jsonify, render_template, request, session
+from flask import Blueprint, Response, current_app, g, jsonify, redirect, render_template, request, session, url_for
 
 from rq3 import storage
 from rq3.catalog import load_catalog
@@ -32,6 +36,8 @@ TOPIC_NAMES = {
     "comedy_sketches": "Comedy and sketches",
     "science_education": "Science and education",
 }
+
+SURVEY_URL_ENV = "RQ3_SURVEY_URL"
 
 preview = Blueprint("preview", __name__, url_prefix="/participant")
 
@@ -59,6 +65,11 @@ def participant_id() -> str:
     return session.get("participant_id", "")
 
 
+def survey_url() -> str:
+    """The external questionnaire (Qualtrics) link, or "" when there is none."""
+    return (current_app.config.get(SURVEY_URL_ENV) or os.environ.get(SURVEY_URL_ENV, "")).strip()
+
+
 # --- Routes --------------------------------------------------------------------------
 
 
@@ -71,7 +82,32 @@ def participant_page():
         videos_per_part=STUDY.config.videos_per_block,
         max_videos_per_part=STUDY.max_videos_per_part,
         survey_questions=SURVEY_QUESTIONS,
+        questionnaire_enabled=bool(survey_url()),
     )
+
+
+@preview.get("/questionnaire")
+def questionnaire():
+    """Send a participant who finished every part to the external questionnaire."""
+    url = survey_url()
+    if not url or not participant_id():
+        return redirect(url_for("preview.participant_page"))
+    try:
+        return redirect(STUDY.questionnaire_link(db(), participant_id(), url))
+    except StudyError:
+        return redirect(url_for("preview.participant_page"))
+
+
+@preview.get("/finished")
+def finished():
+    """Where the questionnaire's end-of-survey redirect lands."""
+    pid = request.args.get("pid", "")
+    try:
+        STUDY.finish_questionnaire(db(), pid, request.args.get("rid"))
+    except StudyError as error:
+        return render_template("rq3/message.html", message=str(error)), 400
+    session["participant_id"] = pid.strip()
+    return redirect(url_for("preview.participant_page", pid=pid.strip()))
 
 
 @preview.get("/api/status")

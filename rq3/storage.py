@@ -133,7 +133,10 @@ def init_schema(db: Connection) -> None:
         db.execute("""
             ALTER TABLE rq3_participants
             ADD COLUMN IF NOT EXISTS consented_at TEXT,
-            ADD COLUMN IF NOT EXISTS consent_version TEXT
+            ADD COLUMN IF NOT EXISTS consent_version TEXT,
+            ADD COLUMN IF NOT EXISTS questionnaire_sent_at TEXT,
+            ADD COLUMN IF NOT EXISTS questionnaire_done_at TEXT,
+            ADD COLUMN IF NOT EXISTS questionnaire_response_id TEXT
         """)
         db.execute("""
             ALTER TABLE rq3_blocks
@@ -188,6 +191,24 @@ def get_participant(db: Connection, participant_id: str, *, lock: bool = False) 
 
 def mark_completed(db: Connection, participant_id: str) -> None:
     db.execute("UPDATE rq3_participants SET completed_at = %s WHERE id = %s", (utc_now(), participant_id))
+
+
+def record_questionnaire_sent(db: Connection, participant_id: str) -> None:
+    """When the participant first left for the external questionnaire."""
+    db.execute(
+        """UPDATE rq3_participants SET questionnaire_sent_at = %s
+        WHERE id = %s AND questionnaire_sent_at IS NULL""",
+        (utc_now(), participant_id),
+    )
+
+
+def record_questionnaire_done(db: Connection, participant_id: str, response_id: str | None) -> None:
+    """The questionnaire sent them back. Only the first return counts."""
+    db.execute(
+        """UPDATE rq3_participants SET questionnaire_done_at = %s, questionnaire_response_id = %s
+        WHERE id = %s AND questionnaire_done_at IS NULL""",
+        (utc_now(), response_id, participant_id),
+    )
 
 
 def record_consent(db: Connection, participant_id: str, version: str) -> None:
@@ -346,6 +367,7 @@ def list_participants(db: Connection) -> list[dict[str, Any]]:
     return db.execute(
         """
         SELECT p.id, p.created_at, p.completed_at, p.feed_order, p.videos_per_part,
+               p.questionnaire_done_at,
                COUNT(DISTINCT b.id) AS parts_started,
                COUNT(DISTINCT b.id) FILTER (WHERE b.ended_at IS NOT NULL) AS parts_done,
                COUNT(i.id) AS videos_shown

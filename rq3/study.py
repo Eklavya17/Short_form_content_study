@@ -21,6 +21,7 @@ import secrets
 from dataclasses import dataclass
 from random import Random
 from typing import Any
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from rq3 import storage
 from rq3.catalog import Clip
@@ -36,6 +37,7 @@ SURVEY_QUESTIONS = {
     "continuation": "I would have liked to keep watching when this part ended.",
 }
 PARTICIPANT_ID_PATTERN = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
+STUDY_NAME = "rq3"  # sent to the questionnaire, which may serve several studies
 MAX_EVENTS_PER_REQUEST = 200
 
 
@@ -53,6 +55,7 @@ class Status:
     videos_per_part: int = 0
     clip: Clip | None = None
     survey_part: int | None = None
+    questionnaire_done: bool = False
 
     def to_json(self) -> dict[str, Any]:
         payload: dict[str, Any] = {
@@ -62,6 +65,8 @@ class Status:
             "parts_done": self.parts_done,
             "videos_per_part": self.videos_per_part,
         }
+        if self.stage == "done":
+            payload["questionnaire_done"] = self.questionnaire_done
         if self.survey_part is not None:
             payload["survey_part"] = self.survey_part
         if self.clip is not None:
@@ -204,6 +209,33 @@ class Study:
                     participant = storage.get_participant(db, participant_id)
             return self._status(db, participant)
 
+    def questionnaire_link(self, db: storage.Connection, participant_id: str, survey_url: str) -> str:
+        """The external questionnaire's address for this participant, once all parts
+        and their surveys are done. Only the participant ID and study name are sent."""
+        with db.transaction():
+            participant = self._locked_participant(db, participant_id)
+            if participant["completed_at"] is None:
+                raise StudyError("Finish all three parts before the questionnaire.")
+            storage.record_questionnaire_sent(db, participant_id)
+        return add_query(survey_url, {"pid": participant_id, "study": STUDY_NAME})
+
+    def finish_questionnaire(
+        self, db: storage.Connection, participant_id: str, response_id: str | None = None
+    ) -> Status:
+        """The questionnaire sent the participant back: record that they finished it,
+        with its response ID so the two datasets can be checked against each other."""
+        participant_id = participant_id.strip()
+        self.check_participant_id(participant_id)
+        response_id = (response_id or "").strip()
+        if not PARTICIPANT_ID_PATTERN.match(response_id):
+            response_id = None
+        with db.transaction():
+            participant = storage.get_participant(db, participant_id, lock=True)
+            if participant is None or participant["completed_at"] is None:
+                raise StudyError("This questionnaire does not match a participant who finished the videos.")
+            storage.record_questionnaire_done(db, participant_id, response_id)
+            return self._status(db, storage.get_participant(db, participant_id))
+
     def record_events(self, db: storage.Connection, participant_id: str, events: list[dict[str, Any]]) -> int:
         """Store a batch of player events; returns how many were kept."""
         with db.transaction():
@@ -265,6 +297,9 @@ class Study:
             "consented_at": participant["consented_at"],
             "consent_version": participant["consent_version"],
             "completed_at": participant["completed_at"],
+            "questionnaire_sent_at": participant["questionnaire_sent_at"],
+            "questionnaire_done_at": participant["questionnaire_done_at"],
+            "questionnaire_response_id": participant["questionnaire_response_id"],
             "feed_order": participant["feed_order"],
             "interest": participant["interest"],
             "videos_per_part": participant["videos_per_part"],
@@ -314,7 +349,7 @@ class Study:
             "videos_per_part": participant["videos_per_part"],
         }
         if participant["completed_at"] is not None:
-            return Status("done", **common)
+            return Status("done", questionnaire_done=participant["questionnaire_done_at"] is not None, **common)
         if participant["consented_at"] is None:
             return Status("welcome", **common)
         if open_block is not None:
@@ -324,6 +359,13 @@ class Study:
             if block["survey"] is None:
                 return Status("survey", survey_part=block["block_number"], **common)
         return Status("ready", **common)
+
+
+def add_query(url: str, values: dict[str, str]) -> str:
+    """`url` with `values` set in its query string, keeping any other parameters."""
+    parts = urlsplit(url)
+    query = [(k, v) for k, v in parse_qsl(parts.query, keep_blank_values=True) if k not in values]
+    return urlunsplit(parts._replace(query=urlencode(query + list(values.items()))))
 
 
 def _open_block(blocks: list[dict[str, Any]]) -> dict[str, Any] | None:

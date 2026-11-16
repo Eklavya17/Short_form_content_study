@@ -101,3 +101,53 @@ def test_event_batches_are_stored(client):
 def test_events_without_a_participant_are_ignored(client):
     post(client, "new")
     assert post(client, "events", {"events": [{"event_type": "pause", "clip_id": "x"}]}).get_json()["kept"] == 0
+
+
+# --- The external (Qualtrics) questionnaire -----------------------------------------------
+
+SURVEY = "https://example.qualtrics.com/jfe/form/SV_test"
+
+
+def finish_all_parts(client):
+    begin(client, videos_per_part=1)
+    for part in range(1, 4):
+        watch_part(client)
+        status = post(client, "survey", {"part": part, "answers": {"enjoyment": 3, "repetition": 3, "continuation": 3}}).get_json()
+    return status
+
+
+@pytest.fixture
+def survey_on():
+    app.config["RQ3_SURVEY_URL"] = SURVEY
+    yield
+    app.config.pop("RQ3_SURVEY_URL")
+
+
+def test_page_turns_the_questionnaire_on_only_when_configured(client, survey_on):
+    assert b'data-questionnaire="on"' in client.get("/participant", base_url=URL).data
+    app.config["RQ3_SURVEY_URL"] = ""
+    assert b'data-questionnaire="off"' in client.get("/participant", base_url=URL).data
+
+
+def test_round_trip_through_the_questionnaire(client, survey_on):
+    done = finish_all_parts(client)
+    assert done["stage"] == "done" and done["questionnaire_done"] is False
+
+    out = client.get("/participant/questionnaire", base_url=URL)
+    assert out.status_code == 302 and out.location == f"{SURVEY}?pid=P1&study=rq3"
+
+    post(client, "new")  # coming back works even in a fresh browser session
+    back = client.get("/participant/finished?pid=P1&rid=R_abc", base_url=URL)
+    assert back.status_code == 302 and back.location.endswith("/participant?pid=P1")
+    assert client.get("/participant/api/status", base_url=URL).get_json()["questionnaire_done"] is True
+
+
+def test_questionnaire_before_finishing_goes_back_to_the_study(client, survey_on):
+    begin(client)
+    out = client.get("/participant/questionnaire", base_url=URL)
+    assert out.status_code == 302 and out.location.endswith("/participant")
+
+
+def test_unknown_return_shows_a_message(client):
+    response = client.get("/participant/finished?pid=NOBODY", base_url=URL)
+    assert response.status_code == 400 and b"contact the study team" in response.data

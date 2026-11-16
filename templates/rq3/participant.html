@@ -6,7 +6,7 @@
   <title>Short Video Study</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='rq3/demo.css') }}">
 </head>
-<body class="participant">
+<body class="participant" data-questionnaire="{{ 'on' if questionnaire_enabled else 'off' }}">
   <!-- 1. Welcome: consent, ID and topic interest -->
   <section class="screen" id="screen-welcome" hidden>
     <div class="card narrow">
@@ -114,7 +114,18 @@
   <!-- 5. Done -->
   <section class="screen" id="screen-done" hidden>
     <div class="card narrow">
-      <h1>All done, thank you!</h1>
+      <div id="done-questionnaire" hidden>
+        <h1>Almost done: one last step</h1>
+        <p>Please answer a short questionnaire about the three parts. It takes about
+          3 minutes.</p>
+        <p><b>At the end, click "Click here to finish the study"</b> so we know you're done.</p>
+        <a class="button primary" id="questionnaire-link" href="/participant/questionnaire">Continue to the questionnaire</a>
+        <p class="muted small" id="questionnaire-countdown"></p>
+      </div>
+      <div id="done-thanks">
+        <h1>All done, thank you!</h1>
+        <p>Your answers have been saved. You can close this page.</p>
+      </div>
       <details class="testing" open>
         <summary>Testing</summary>
         <p class="muted" id="done-info"></p>

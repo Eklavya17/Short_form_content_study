@@ -43,11 +43,12 @@ def cmd_list(db: storage.Connection, _args) -> int:
     if not rows:
         print("No participants yet.")
         return 0
-    print(f"{'participant':<16}{'order':<7}{'parts done':<12}{'videos':<8}{'created (UTC)':<22}completed")
+    print(f"{'participant':<16}{'order':<7}{'parts done':<12}{'videos':<8}{'created (UTC)':<22}{'completed':<11}questionnaire")
     for row in rows:
         print(
             f"{row['id']:<16}{row['feed_order']:<7}{row['parts_done']}/3{'':<8}{row['videos_shown']:<8}"
-            f"{row['created_at'][:19]:<22}{'yes' if row['completed_at'] else 'no'}"
+            f"{row['created_at'][:19]:<22}{'yes' if row['completed_at'] else 'no':<11}"
+            f"{'yes' if row['questionnaire_done_at'] else 'no'}"
         )
     return 0
 
@@ -110,6 +111,8 @@ def main(argv: list[str] | None = None) -> int:
     links.add_argument("participant_ids", nargs="+")
     links.add_argument("--base", default=DEFAULT_BASE, help=f"where the study runs (default {DEFAULT_BASE})")
     args = parser.parse_args(argv)
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")  # clip titles contain emoji; Windows consoles default to cp1252
 
     if args.command == "links":
         return cmd_links(None, args)

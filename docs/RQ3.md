@@ -400,6 +400,51 @@ yourself shortly before a session. Render's free Postgres databases expire after
 limited period (check the database's page for its date); download participants'
 data before then or switch the database to a paid plan for the real pilot.
 
+## End-of-study questionnaire in Qualtrics
+
+The three short questions after each part stay in the app. The end-of-study
+questionnaire is one Qualtrics survey shared by RQ1-RQ3 ("Short Video Study
+Questionnaire (RQ1-RQ3)"): after the last part's questions, the app sends the
+participant there, and the survey's closing page has a "Click here to finish the
+study" link back to the app. (The free Qualtrics account cannot redirect
+automatically, so this is one click; a university account could use a redirect
+instead.)
+
+```
+app (last part done) ──> /participant/questionnaire
+                     ──> <Qualtrics link>?pid=P001&study=rq3
+Qualtrics closing page ─(participant clicks)─> /participant/finished?pid=P001&rid=R_abc123
+                     ──> app records questionnaire_done_at, shows "All done"
+```
+
+Only the participant ID and the study name go to Qualtrics: never the feed order
+or anything about the videos. Feed 1/2/3 in the questionnaire are the parts in the
+order watched; the export's `feed_order` turns them into A/B/C.
+
+**How the Qualtrics survey is set up:**
+
+1. Survey flow starts with **Set Embedded Data**: `pid` and `study`, both
+   "Value will be set from Panel or URL".
+2. **Branch**: if `pid` is Empty → End of Survey.
+3. One **Branch** per study: `study` is Equal to `rq1` / `rq2` / `rq3` → that
+   study's block (RQ1: 4 questions, RQ2: 3, RQ3: 9).
+4. In the `rq3` branch, after the block, an **End of Survey** customized with the
+   library message "RQ3 finish link", whose link is
+   `http://127.0.0.1:5001/participant/finished?pid=${e://Field/pid}&rid=${e://Field/ResponseID}`.
+   Change the host to the Render address before the hosted pilot. RQ1 and RQ2
+   get their own ending the same way once their apps send people here.
+5. Published 2026-11-16. Anonymous survey link (the value for `RQ3_SURVEY_URL`):
+   `https://qualtricsxmdzfdw6d87.qualtrics.com/jfe/form/SV_d0bi23v5d6yj2Wa`
+
+**Connecting the app:** set `RQ3_SURVEY_URL` to that link (Render: the service's
+Environment page; locally: `$env:RQ3_SURVEY_URL = "<link>"` before
+`python -m rq3.demo`). Without it the study ends in the app, as before.
+
+**Joining the data:** the Qualtrics CSV export has a `pid` column (and
+`ResponseId`); the app's export has `participant_id`, `questionnaire_done_at` and
+`questionnaire_response_id`. Join on the ID; the response ID double-checks the
+match. `python -m rq3.admin list` shows who finished the questionnaire.
+
 ## Conventions
 
 - Numbers that might be tuned go in `rq3/config.py`, never inline.

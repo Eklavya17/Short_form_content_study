@@ -244,3 +244,51 @@ def test_completed_only_after_the_last_survey(study, db):
     assert status.stage == "survey" and storage.get_participant(db, "P1")["completed_at"] is None
     assert study.submit_survey(db, "P1", 3, ANSWERS).stage == "done"
     assert storage.get_participant(db, "P1")["completed_at"] is not None
+
+
+# --- The external (Qualtrics) questionnaire at the end ------------------------------------
+
+SURVEY = "https://example.qualtrics.com/jfe/form/SV_test?Q_Language=EN"
+
+
+def finish_study(study, db, pid="P1"):
+    study.begin(db, pid, {}, videos_per_part=1, consented=True)
+    for part in range(1, PARTS + 1):
+        finish_part(study, db, pid, part)
+
+
+def test_questionnaire_link_carries_only_the_id_and_study(study, db):
+    finish_study(study, db)
+    link = study.questionnaire_link(db, "P1", SURVEY)
+    assert link == "https://example.qualtrics.com/jfe/form/SV_test?Q_Language=EN&pid=P1&study=rq3"
+    assert storage.get_participant(db, "P1")["questionnaire_sent_at"] is not None
+
+
+def test_questionnaire_waits_for_every_part(study, db):
+    study.begin(db, "P1", {}, videos_per_part=1, consented=True)
+    finish_part(study, db, "P1", 1)
+    with pytest.raises(StudyError, match="Finish all three parts"):
+        study.questionnaire_link(db, "P1", SURVEY)
+
+
+def test_returning_from_the_questionnaire_is_recorded_once(study, db):
+    finish_study(study, db)
+    assert study.status(db, "P1").questionnaire_done is False
+    assert study.finish_questionnaire(db, "P1", "R_first").questionnaire_done is True
+    study.finish_questionnaire(db, "P1", "R_second")  # e.g. the back button
+    export = study.export(db, "P1")
+    assert export["questionnaire_response_id"] == "R_first"
+    assert export["questionnaire_done_at"] is not None
+
+
+def test_odd_response_ids_are_not_stored(study, db):
+    finish_study(study, db)
+    study.finish_questionnaire(db, "P1", "${e://Field/ResponseID}")
+    assert storage.get_participant(db, "P1")["questionnaire_response_id"] is None
+
+
+@pytest.mark.parametrize("pid", ["NOBODY", "P1"])
+def test_returning_without_a_finished_study_is_refused(study, db, pid):
+    study.begin(db, "P1", {}, videos_per_part=1, consented=True)
+    with pytest.raises(StudyError, match="does not match"):
+        study.finish_questionnaire(db, pid, "R_x")
